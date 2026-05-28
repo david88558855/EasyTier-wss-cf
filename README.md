@@ -22,6 +22,7 @@ EasyTier WSS CF 是一个**完全独立部署在 Cloudflare Workers 上**的 Eas
 
 - **独立运行**：整个服务只依赖 Cloudflare Workers。
 - **管理后台**：支持新增、编辑、删除路由。
+- **多语言后台**：支持英文、简体中文、繁体中文、日文、韩文。
 - **支持 EasyTier WSS**：每条路由都有独立的 `wss://` 入口。
 - **密码保护**：后台登录密码通过 Cloudflare Workers Secret 设置。
 - **路由可视化**：可以查看每条路由的公用入口、EasyTier 命令和连接状态。
@@ -182,6 +183,18 @@ sudo easytier-core -d --network-name my-network --network-secret my-secret -p 'w
 
 - `docs/index.html`
 
+### 语言支持
+
+GitHub Pages 介绍页支持以下语言：
+
+- English
+- 简体中文
+- 繁體中文
+- 日本語
+- 한국어
+
+页面右上角可以切换语言。
+
 ### 启用 GitHub Pages
 
 如果你想把这个介绍页发布到 GitHub Pages，可以在仓库设置里这样操作：
@@ -204,6 +217,7 @@ sudo easytier-core -d --network-name my-network --network-secret my-secret -p 'w
 - Cloudflare Workers 部署说明
 - 后台密码设置说明
 - EasyTier 路由创建说明
+- 多语言切换
 - 常见问题
 
 ## 配置建议
