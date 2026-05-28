@@ -1,6 +1,6 @@
 name = "easytier-wss-cf"
 main = "src/index.js"
-compatibility_date = "2026-05-29"
+compatibility_date = "2026-05-28"
 
 [[durable_objects.bindings]]
 name = "ADMIN_STORE"
