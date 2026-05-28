@@ -1,0 +1,10 @@
+{
+  "name": "easytier-wss-cf",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "powershell -NoProfile -Command \"Set-Location -LiteralPath $env:INIT_CWD; node --test ./test/auth.test.js\""
+  }
+}

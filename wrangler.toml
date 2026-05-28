@@ -1,0 +1,14 @@
+name = "easytier-wss-cf"
+main = "src/index.js"
+compatibility_date = "2026-05-29"
+
+[[durable_objects.bindings]]
+name = "ADMIN_STORE"
+class_name = "AdminStore"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["AdminStore"]
+
+[vars]
+APP_NAME = "EasyTier WSS CF"
