@@ -819,13 +819,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                 </div>
             </div>
 
-            <div id="defaultPasswordAlert" class="alert-banner" style="display: none;">
-                <i data-lucide="alert-triangle"></i>
-                <div>
-                    <strong data-i18n="alert-security-title">Security Warning:</strong>
-                    <span data-i18n="alert-security-desc">You are using the default admin password. Please change it in Settings.</span>
-                </div>
-            </div>
+
 
             <!-- TAB: OVERVIEW -->
             <div id="tabOverview" class="tab-content active">
@@ -970,13 +964,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                     </div>
 
                     <div class="settings-title" data-i18n="settings-admin-pass">Admin Password</div>
-                    <form onsubmit="handleChangePassword(event)">
-                        <div class="form-group">
-                            <label for="newPassInput" data-i18n="set-new-pass">New Password</label>
-                            <input type="password" id="newPassInput" class="form-control" required minlength="4">
-                        </div>
-                        <button type="submit" class="btn-submit" style="width: auto; padding: 0.6rem 2rem;" data-i18n="btn-save">Save Password</button>
-                    </form>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;" data-i18n="set-pass-env-note">The admin password is configured via the <code style="background:rgba(255,255,255,0.08);padding:0.1em 0.4em;border-radius:4px;">ADMIN_PASSWORD</code> environment variable in the Cloudflare Workers dashboard. Changes take effect after redeployment.</p>
                 </div>
             </div>
         </main>
@@ -1051,7 +1039,8 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                 "msg-changed-pass": "Admin password updated successfully!",
                 "msg-gen-success": "Token generated successfully!",
                 "msg-kicked-success": "Peer kicked successfully!",
-                "msg-deleted-success": "Token deleted successfully!"
+                "msg-deleted-success": "Token deleted successfully!",
+                "set-pass-env-note": "The admin password is configured via the ADMIN_PASSWORD environment variable in the Cloudflare Workers dashboard. Changes take effect after redeployment."
             },
             "zh-CN": {
                 "login-label": "管理员密码",
@@ -1102,7 +1091,8 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                 "msg-changed-pass": "管理员密码修改成功！",
                 "msg-gen-success": "令牌生成成功！",
                 "msg-kicked-success": "节点已成功踢出！",
-                "msg-deleted-success": "令牌已成功注销！"
+                "msg-deleted-success": "令牌已成功注销！",
+                "set-pass-env-note": "管理员密码通过 Cloudflare Workers 控制台中的 ADMIN_PASSWORD 环境变量进行配置，修改后重新部署即可生效。"
             },
             "zh-TW": {
                 "login-label": "管理員密碼",
@@ -1153,7 +1143,8 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                 "msg-changed-pass": "管理員密碼修改成功！",
                 "msg-gen-success": "權杖生成成功！",
                 "msg-kicked-success": "節點已成功踢出！",
-                "msg-deleted-success": "權杖已成功註銷！"
+                "msg-deleted-success": "權杖已成功註銷！",
+                "set-pass-env-note": "管理員密碼透過 Cloudflare Workers 控制台中的 ADMIN_PASSWORD 環境變數進行設定，修改後重新部署即可生效。"
             },
             ja: {
                 "login-label": "管理者パスワード",
@@ -1204,7 +1195,8 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                 "msg-changed-pass": "管理者パスワードが更新されました！",
                 "msg-gen-success": "トークンが生成されました！",
                 "msg-kicked-success": "ノードをキックしました！",
-                "msg-deleted-success": "トークンを削除しました！"
+                "msg-deleted-success": "トークンを削除しました！",
+                "set-pass-env-note": "管理者パスワードは Cloudflare Workers ダッシュボードの ADMIN_PASSWORD 環境変数で設定します。変更は再デプロイ後に有効になります。"
             },
             ko: {
                 "login-label": "관리자 비밀번호",
@@ -1255,7 +1247,8 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                 "msg-changed-pass": "비밀번호가 성공적으로 변경되었습니다!",
                 "msg-gen-success": "토큰이 생성되었습니다!",
                 "msg-kicked-success": "피어가 성공적으로 추방되었습니다!",
-                "msg-deleted-success": "토큰이 삭제되었습니다!"
+                "msg-deleted-success": "토큰이 삭제되었습니다!",
+                "set-pass-env-note": "관리자 비밀번호는 Cloudflare Workers 대시보드의 ADMIN_PASSWORD 환경 변수로 설정합니다. 변경 사항은 재배포 후 적용됩니다."
             }
         };
 
@@ -1354,7 +1347,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
 
         async function verifyToken() {
             try {
-                const res = await fetch('/api/rooms', {
+                const res = await fetch('/api/auth/verify', {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
                 if (res.ok) {
@@ -1382,13 +1375,6 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                     localStorage.setItem('easytier_admin_token', token);
                     document.getElementById('passwordInput').value = '';
                     document.getElementById('loginError').style.display = 'none';
-                    
-                    if (password === 'admin') {
-                        document.getElementById('defaultPasswordAlert').style.display = 'flex';
-                    } else {
-                        document.getElementById('defaultPasswordAlert').style.display = 'none';
-                    }
-
                     showDashboard();
                 } else {
                     document.getElementById('loginError').style.display = 'block';

@@ -79,13 +79,28 @@ wrangler deploy
 
 ### 配置说明
 
-项目使用 [wrangler.toml](file:///Users/runner/work/easytier/easytier/easytier-v3/easytier-ws-relay/wrangler.toml#L0-L0) 文件进行配置，主要配置项包括：
+项目使用 `wrangler.toml` 文件进行基础配置，敏感参数建议通过 Cloudflare 控制台设置。
 
-- [name](file:///Users/runner/work/easytier/easytier/easytier-v3/easytier/src/cli/main.rs#L0-L0): Worker 名称
-- [main](file:///Users/runner/work/easytier/easytier/easytier-v3/easytier/src/cli/main.rs#L0-L0): 入口文件路径
-- [compatibility_date](file:///Users/runner/work/easytier/easytier/easytier-v3/easytier/src/cli/main.rs#L0-L0): 兼容性日期
-- Durable Objects 配置
-- 环境变量配置
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `WS_PATH` | WebSocket 路径 | `ws` |
+| `EASYTIER_DISABLE_RELAY` | `"1"` 开启纯 P2P 模式 | `"0"` |
+| `EASYTIER_COMPRESS_RPC` | `"0"` 关闭 RPC 压缩（调试用） | `"1"` |
+| `LOCATION_HINT` | Durable Object 地区，见下表 | `"apac"` |
+| `ADMIN_PASSWORD` | **管理后台登录密码**（见下方说明） | `"changeme"` |
+
+### 设置管理后台密码（重要）
+
+部署后请立即在 **Cloudflare 控制台** 中将 `ADMIN_PASSWORD` 设置为您的自定义密码：
+
+1. 打开 [Cloudflare Dashboard](https://dash.cloudflare.com/)
+2. 进入 **Workers & Pages** → 选择您的 Worker → **Settings** → **Variables and Secrets**
+3. 添加变量 `ADMIN_PASSWORD`，输入您的密码，选择 **Secret** 类型（加密存储）
+4. 保存后重新部署生效
+
+> **请勿将真实密码提交到代码仓库。** 使用 Cloudflare Secret 可确保密码加密存储，不会在日志中暴露。
+
+管理后台地址：`https://your-worker.workers.dev/`（或 `/admin`）
 
 ## 项目结构
 

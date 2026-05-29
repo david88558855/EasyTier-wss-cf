@@ -2,13 +2,19 @@
 // Module syntax is required for Durable Objects.
 import { RelayRoom } from './worker/relay_room.js';
 import { serveAdminDashboard } from './admin_html.js';
+import { signAdminToken, verifyAdminToken } from './auth.js';
 
 export { RelayRoom };
+
+// JWT-like signing secret derived from ADMIN_PASSWORD
+function getSecret(env) {
+  return (env.ADMIN_PASSWORD || 'changeme') + '_jwt_secret';
+}
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    const { pathname, searchParams } = url;
+    const { pathname } = url;
 
     // 1. Health check
     if (pathname === '/healthz') {
@@ -20,27 +26,60 @@ export default {
       return new Response(serveAdminDashboard, {
         headers: {
           'Content-Type': 'text/html; charset=utf-8',
-          // Prevent caching for dynamic updates
           'Cache-Control': 'no-cache, no-store, must-revalidate',
         },
       });
     }
 
-    // 3. Admin API routing (all proxied to the central __directory__ Durable Object)
+    // 3a. Auth endpoint — verify admin password, return signed token
+    if (pathname === '/api/auth' && request.method === 'POST') {
+      let body;
+      try { body = await request.json(); } catch { return jsonError('Invalid JSON', 400); }
+      const adminPassword = env.ADMIN_PASSWORD || 'changeme';
+      if (body.password !== adminPassword) {
+        return jsonError('Unauthorized', 401);
+      }
+      const token = await signAdminToken(getSecret(env), { role: 'admin' });
+      return jsonOk({ token });
+    }
+
+    // 3b. Token verification endpoint (used on page load to check stored token)
+    if (pathname === '/api/auth/verify' && request.method === 'GET') {
+      const token = getBearerToken(request);
+      const payload = token ? await verifyAdminToken(getSecret(env), token) : null;
+      if (!payload) return jsonError('Unauthorized', 401);
+      return jsonOk({ ok: true });
+    }
+
+    // 3c. Config endpoint — protected, currently a no-op placeholder
+    if (pathname === '/api/config' && request.method === 'POST') {
+      const token = getBearerToken(request);
+      const payload = token ? await verifyAdminToken(getSecret(env), token) : null;
+      if (!payload) return jsonError('Unauthorized', 401);
+      // Password changes via env variable only; body is ignored
+      return jsonOk({ ok: true });
+    }
+
+    // 4. Admin API routing (all proxied to the central __directory__ Durable Object)
     if (pathname.startsWith('/api/')) {
+      // Verify admin token before forwarding
+      const token = getBearerToken(request);
+      const payload = token ? await verifyAdminToken(getSecret(env), token) : null;
+      if (!payload) return jsonError('Unauthorized', 401);
+
       const dirStub = env.RELAY_ROOM.get(env.RELAY_ROOM.idFromName('__directory__'));
       return dirStub.fetch(request);
     }
 
-    // 4. WebSocket routing to EasyTier peer rooms
+    // 5. WebSocket routing to EasyTier peer rooms
     const wsPath = '/' + (env.WS_PATH || 'ws');
     if (pathname === wsPath || pathname === wsPath + '/') {
       if (request.headers.get('Upgrade') !== 'websocket') {
         return new Response('Expected WebSocket upgrade', { status: 400 });
       }
 
-      const roomId = searchParams.get('room') || 'default';
-      
+      const roomId = url.searchParams.get('room') || 'default';
+
       // Prevent clients from connecting directly to the directory room as a peer
       if (roomId === '__directory__') {
         return new Response('Invalid room name', { status: 400 });
@@ -51,7 +90,27 @@ export default {
       return roomStub.fetch(request);
     }
 
-    // 5. Fallback 404
+    // 6. Fallback 404
     return new Response('Not found', { status: 404 });
   },
 };
+
+function getBearerToken(request) {
+  const auth = request.headers.get('Authorization') || '';
+  if (auth.startsWith('Bearer ')) return auth.slice(7).trim();
+  return request.headers.get('X-Admin-Token')?.trim() || '';
+}
+
+function jsonOk(data) {
+  return new Response(JSON.stringify(data), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+function jsonError(message, status) {
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
