@@ -1696,15 +1696,14 @@ export const serveAdminDashboard = `<!DOCTYPE html>
 
             globalStats.rooms.forEach(room => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="font-weight: 600; color: #ffffff;">\${room.roomId}</td>
-                    <td><span class="badge-status badge-success">\${room.peerCount}</span></td>
-                    <td>
-                        <button class="btn-action" onclick="viewRoomPeers('\${room.roomId}')">
-                            <i data-lucide="eye" style="width: 14px; height: 14px;"></i> \${translations[currentLang]['action-view']}
-                        </button>
-                    </td>
-                `;
+                tr.innerHTML =
+                    '<td style="font-weight: 600; color: #ffffff;">' + room.roomId + '</td>' +
+                    '<td><span class="badge-status badge-success">' + room.peerCount + '</span></td>' +
+                    '<td>' +
+                        '<button class="btn-action" onclick="viewRoomPeers(\'' + room.roomId + '\')">' +
+                            '<i data-lucide="eye" style="width: 14px; height: 14px;"></i> ' + translations[currentLang]['action-view'] +
+                        '</button>' +
+                    '</td>';
                 body.appendChild(tr);
             });
             lucide.createIcons();
@@ -1742,31 +1741,30 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                 const hours = Math.floor(duration / 3600);
                 const minutes = Math.floor((duration % 3600) / 60);
                 const seconds = duration % 60;
-                const timeString = \`\${hours > 0 ? hours + 'h ' : ''}\${minutes}m \${seconds}s\`;
+                const timeString = (hours > 0 ? hours + 'h ' : '') + minutes + 'm ' + seconds + 's';
 
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="font-family: monospace; font-weight: 500;">\${peer.peerId}</td>
-                    <td style="color: var(--success); font-weight: 600;">\${peer.ipv4Addr || 'Pending'}</td>
-                    <td>\${peer.hostname || 'N/A'}</td>
-                    <td><span class="badge-status badge-warning" style="font-size: 0.75rem;">\${peer.easytierVersion || 'N/A'}</span></td>
-                    <td style="font-size: 0.85rem;">\${formatBytes(peer.rxBytes)} / \${formatBytes(peer.txBytes)}</td>
-                    <td>\${timeString}</td>
-                    <td>
-                        <button class="btn-action btn-danger-action" onclick="kickPeer('\${peer.peerId}')">
-                            <i data-lucide="user-minus" style="width: 14px; height: 14px;"></i> \${translations[currentLang]['action-kick']}
-                        </button>
-                    </td>
-                `;
+                tr.innerHTML =
+                    '<td style="font-family: monospace; font-weight: 500;">' + peer.peerId + '</td>' +
+                    '<td style="color: var(--success); font-weight: 600;">' + (peer.ipv4Addr || 'Pending') + '</td>' +
+                    '<td>' + (peer.hostname || 'N/A') + '</td>' +
+                    '<td><span class="badge-status badge-warning" style="font-size: 0.75rem;">' + (peer.easytierVersion || 'N/A') + '</span></td>' +
+                    '<td style="font-size: 0.85rem;">' + formatBytes(peer.rxBytes) + ' / ' + formatBytes(peer.txBytes) + '</td>' +
+                    '<td>' + timeString + '</td>' +
+                    '<td>' +
+                            '<button class="btn-action btn-danger-action" onclick="kickPeer(\'' + peer.peerId + '\')">' +
+                            '<i data-lucide="user-minus" style="width: 14px; height: 14px;"></i> ' + translations[currentLang]['action-kick'] +
+                        '</button>' +
+                    '</td>';
                 body.appendChild(tr);
             });
             lucide.createIcons();
         }
 
         async function kickPeer(peerId) {
-            if (!confirm(\`Are you sure you want to kick peer \${peerId}?\`)) return;
+            if (!confirm('Are you sure you want to kick peer ' + peerId + '?')) return;
             try {
-                const res = await fetch(\`/api/rooms/\${encodeURIComponent(activeSelectedRoomId)}/kick?peerId=\${encodeURIComponent(peerId)}\`, {
+                const res = await fetch('/api/rooms/' + encodeURIComponent(activeSelectedRoomId) + '/kick?peerId=' + encodeURIComponent(peerId), {
                     method: 'POST',
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
@@ -1800,16 +1798,15 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                 tokens.forEach(tok => {
                     const date = new Date(tok.createdAt).toLocaleString();
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td style="font-family: monospace; font-weight: 600; color: #a78bfa;">\${tok.token}</td>
-                        <td>\${tok.description || ''}</td>
-                        <td style="color: var(--text-secondary);">\${date}</td>
-                        <td>
-                            <button class="btn-action btn-danger-action" onclick="deleteToken('\${tok.token}')">
-                                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> \${translations[currentLang]['action-delete']}
-                            </button>
-                        </td>
-                    `;
+                    tr.innerHTML =
+                        '<td style="font-family: monospace; font-weight: 600; color: #a78bfa;">' + tok.token + '</td>' +
+                        '<td>' + (tok.description || '') + '</td>' +
+                        '<td style="color: var(--text-secondary);">' + date + '</td>' +
+                        '<td>' +
+                            '<button class="btn-action btn-danger-action" onclick="deleteToken(\'' + tok.token + '\')">' +
+                                '<i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> ' + translations[currentLang]['action-delete'] +
+                            '</button>' +
+                        '</td>';
                     body.appendChild(tr);
                 });
                 lucide.createIcons();
