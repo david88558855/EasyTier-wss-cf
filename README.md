@@ -1,302 +1,186 @@
-# EasyTier WSS CF
+# EasyTier WebSocket Relay for Cloudflare Workers
 
-EasyTier WSS CF 是一个**完全独立部署在 Cloudflare Workers 上**的 EasyTier WSS 支持项目。
+## 项目简介
 
-它不是代理服务器，也不依赖你自己的公网中转机，而是直接运行在 Cloudflare Workers + Durable Objects 上，提供以下能力：
+该项目是 EasyTier 的第三方服务端实现。EasyTier 是一个去中心化 P2P 组网程序，官方代码使用 Rust 实现。本项目使用 Cloudflare Worker + Durable Object 实现了 JavaScript 版本的 WebSocket 服务端，支持网络转发与 P2P 打洞信息交换。
 
-- EasyTier WSS 接入
-- 管理后台
-- 路由配置管理
-- 同一路由内的连接协调
-- 基础连接统计与事件记录
+项目使用 Claude 进行开发，目前处于早期阶段，还存在很多问题，欢迎提交代码或 issue。
 
-## 项目定位
+> **注意：本项目仅供学习交流使用**
 
-这个项目的目标很明确：
+## 技术架构
 
-> 让 EasyTier 的 `wss` 接入直接跑在 Cloudflare Workers 上。
+- 基于 Cloudflare Workers 和 Durable Objects
+- 使用 WebSocket 协议进行实时通信
+- 采用 Protocol Buffers 进行高效序列化
+- 支持消息加密与完整性保护
+- 模块化设计，便于扩展和维护
 
-部署完成后，你会得到一个可以直接使用的 Workers 入口，客户端通过它连接 EasyTier，不需要额外准备中转服务器。
+## 开发环境搭建
 
-## 主要功能
+### 前置要求
 
-- **独立运行**：整个服务只依赖 Cloudflare Workers。
-- **管理后台**：支持新增、编辑、删除路由。
-- **多语言后台**：支持英文、简体中文、繁体中文、日文、韩文。
-- **支持 EasyTier WSS**：每条路由都有独立的 `wss://` 入口。
-- **密码保护**：后台登录密码通过 Cloudflare Workers Secret 设置。
-- **路由可视化**：可以查看每条路由的公用入口、EasyTier 命令和连接状态。
+- Node.js (>= 16.0.0)
+- pnpm (推荐) 或 npm
+- Wrangler CLI (Cloudflare Workers 工具链)
 
-## 工作原理
+### 安装步骤
 
-### 1. 管理后台
-
-管理后台地址是：
-
-```text
-/panel
+1. 克隆项目仓库：
+```bash
+git clone <your-repo-url>
+cd easytier-ws-relay
 ```
 
-后台可以用来：
-
-- 登录
-- 创建路由
-- 修改路由
-- 删除路由
-- 查看连接统计
-- 复制 EasyTier 连接命令
-
-### 2. EasyTier WSS 接入
-
-每条路由都有一个公开入口：
-
-```text
-wss://<你的域名>/ws/<route-id>/<client-token>
+2. 安装依赖：
+```bash
+pnpm install
+# 或者使用 npm
+npm install
 ```
 
-EasyTier 客户端会直接连接到这个地址。
-
-### 3. Durable Objects
-
-项目使用两个 Durable Object：
-
-- `AdminStore`：保存路由、统计和事件
-- `RouteHub`：负责同一路由内的 WebSocket 连接协调
-
-### 4. 协议处理
-
-Workers 接收到 WSS 连接后，会根据 EasyTier 的 peer 信息在同一路由内进行消息协调，从而让多个客户端正确建立连接。
-
-## 接口说明
-
-### 页面
-
-- `/panel`：管理后台
-
-### API
-
-- `/api/login`：后台登录
-- `/api/state`：获取后台状态
-- `/api/routes`：创建路由
-- `/api/routes/:id`：读取、更新、删除路由
-- `/api/routes/:id/test`：验证路由配置
-- `/api/admin/api-keys`：生成、查看和撤销 API key
-- `/api/public/state`：使用 API key 获取公开数据
-
-### WSS
-
-- `/ws/:routeId/:clientToken`：EasyTier WSS 接入入口
-
-## 后台密码如何设置
-
-后台密码不要写死在代码里，而是应该在 Cloudflare Workers 的部署配置里设置。
-
-推荐使用这个变量名：
-
-- `ADMIN_PASSWORD`
-
-项目也兼容旧变量：
-
-- `ADMIN_SECRET`
-
-但新部署建议优先使用 `ADMIN_PASSWORD`，语义更清晰。
-
-## 部署方式
-
-本项目推荐的部署方式是：
-
-1. 先在 GitHub 上 fork 本项目
-2. 再在 Cloudflare Workers 网页后台连接你的 GitHub 仓库并部署
-3. 最后在 Cloudflare Dashboard 里设置后台密码
-
-整个过程**不需要在本地执行命令**。
-
-### 第一步：Fork 仓库
-
-先把本项目 fork 到你自己的 GitHub 账号下。
-
-### 第二步：在 Cloudflare Workers 网页上部署
-
-进入 Cloudflare Dashboard 的 Workers 创建页面，选择从 GitHub 导入项目，然后绑定你 fork 后的仓库。
-
-Cloudflare 会自动读取仓库中的 `wrangler.toml` 和源码文件，并完成部署。
-
-### 第三步：设置后台密码
-
-部署完成后，进入 Cloudflare Dashboard 中该 Worker 的设置页面，在 **Secrets / Variables** 中添加：
-
-- `ADMIN_PASSWORD`
-
-然后填写你自己的后台密码。
-
-例如：
-
-```text
-MyStrongPanelPassword123
+3. 安装 Wrangler CLI：
+```bash
+npm install -g wrangler
 ```
 
-如果你之前用过旧变量名，也可以继续保留 `ADMIN_SECRET`，但建议以后统一使用 `ADMIN_PASSWORD`。
-
-## API key 如何使用
-
-对外读取数据时，需要先在后台生成一个 API key，然后把这个 key 放到请求头里：
-
-```http
-X-API-Key: your-generated-key
+4. 登录 Cloudflare：
+```bash
+wrangler login
 ```
 
-验证通过后，才能访问：
+## 本地开发
 
-```text
-/api/public/state
-```
-
-后台里可以：
-
-- 生成新的 key
-- 保存当前 key 方便测试
-- 撤销已经不再使用的 key
-
-建议把公开 key 和后台密码分开管理，这样更安全，也更适合移动端或第三方程序调用。
-
-### 第四步：打开管理后台
-
-部署完成后，访问：
-
-```text
-https://你的 Workers 域名/panel
-```
-
-然后使用你设置的 `ADMIN_PASSWORD` 登录。
-
-## 创建 EasyTier 路由
-
-登录后台后，你可以创建一条路由，并填写：
-
-- 路由名称
-- `network-name`
-- `network-secret`
-- `client token`
-- 启用/禁用状态
-- 备注
-
-创建完成后，后台会自动生成：
-
-- 公用 WSS 地址
-- EasyTier 启动命令
-
-示例命令如下：
+### 启动开发服务器
 
 ```bash
-sudo easytier-core -d --network-name <name> --network-secret <secret> -p 'wss://your-domain/ws/<route-id>/<client-token>'
+# 启动本地开发服务器
+pnpm run dev
+# 或者
+wrangler dev --ip 0.0.0.0
 ```
 
-## EasyTier 客户端如何连接
-
-你只需要把后台生成的命令复制到客户端使用即可。
-
-示例：
+### 直接启动（不监听文件变化）
 
 ```bash
-sudo easytier-core -d --network-name my-network --network-secret my-secret -p 'wss://your-domain/ws/route-id/client-token'
+pnpm run start
+# 或者
+wrangler dev
 ```
 
-## GitHub Pages 介绍页
+## 部署到 Cloudflare
 
-仓库已经提供一个 Apple 风格的静态介绍页，文件位于：
-
-- `docs/index.html`
-
-### 语言支持
-
-GitHub Pages 介绍页支持以下语言：
-
-- English
-- 简体中文
-- 繁體中文
-- 日本語
-- 한국어
-
-页面右上角可以切换语言。
-
-### 启用 GitHub Pages
-
-如果你想把这个介绍页发布到 GitHub Pages，可以在仓库设置里这样操作：
-
-1. 打开仓库的 **Settings**
-2. 进入 **Pages**
-3. 在 **Build and deployment** 中选择 **Deploy from a branch**
-4. 分支选择 `main`
-5. 目录选择 `/docs`
-6. 保存设置
-
-设置完成后，GitHub Pages 就会使用 `docs/index.html` 作为站点首页。
-
-### Pages 页面内容
-
-这个 GitHub Pages 页面包含：
-
-- 项目介绍
-- 架构说明
-- Cloudflare Workers 部署说明
-- 后台密码设置说明
-- EasyTier 路由创建说明
-- 多语言切换
-- 常见问题
-
-## 配置建议
-
-- `network-name`：建议使用有辨识度的名称
-- `network-secret`：请使用足够强的共享密钥
-- `client token`：建议保持随机且唯一
-- 后台密码：请使用独立且足够强的密码
-
-## 常见问题
-
-### 1. 这个项目是代理别的 WSS 服务吗？
-
-不是。这个项目本身就是运行在 Cloudflare Workers 上的 EasyTier WSS 支持实现。
-
-### 2. 为什么后台密码要放到 Workers Secret？
-
-因为这是 Cloudflare Workers 的推荐做法，能避免把敏感信息写进仓库代码。
-
-### 3. 可以只部署一份 Workers 吗？
-
-可以。这个项目就是按单 Worker 独立部署设计的。
-
-### 4. 部署时一定要本地操作吗？
-
-不需要。你可以直接通过 GitHub fork + Cloudflare Workers 网页完成部署。
-
-## 开发与测试
-
-如果你需要在本地自检，可以运行：
+### 部署命令
 
 ```bash
-npm test
+# 部署到 Cloudflare Workers
+wrangler deploy
 ```
 
-以及语法检查：
+### 配置说明
 
-```bash
-node --check src/index.js
-node --check src/route-hub.js
-node --check src/store.js
-node --check src/relay.js
-node --check src/ui.js
+项目使用 [wrangler.toml](file:///Users/runner/work/easytier/easytier/easytier-v3/easytier-ws-relay/wrangler.toml#L0-L0) 文件进行配置，主要配置项包括：
+
+- [name](file:///Users/runner/work/easytier/easytier/easytier-v3/easytier/src/cli/main.rs#L0-L0): Worker 名称
+- [main](file:///Users/runner/work/easytier/easytier/easytier-v3/easytier/src/cli/main.rs#L0-L0): 入口文件路径
+- [compatibility_date](file:///Users/runner/work/easytier/easytier/easytier-v3/easytier/src/cli/main.rs#L0-L0): 兼容性日期
+- Durable Objects 配置
+- 环境变量配置
+
+## 项目结构
+
+```
+easytier-ws-relay/
+├── protos/                 # Protocol Buffers 定义
+│   ├── google
+│   │   └── protobuf
+│   │       └── timestamp.proto
+│   ├── common.proto        # 通用协议定义
+│   ├── error.proto         # 错误协议定义
+│   └── peer_rpc.proto      # 对等节点 RPC 协议定义
+├── src/
+│   ├── worker/             # Worker 实现
+│   │   ├── core/           # Worker 核心功能
+│   │   │   ├── basic_handlers.js   # 基础处理器
+│   │   │   ├── compress.js         # 压缩功能
+│   │   │   ├── constants.js        # 常量定义
+│   │   │   ├── crypto.js           # 加密功能
+│   │   │   ├── packet.js           # 数据包处理
+│   │   │   ├── peer_manager.js     # 对等节点管理
+│   │   │   ├── protos.js           # Protobuf 相关功能
+│   │   │   ├── protos_generated.js # Protobuf 生成的代码
+│   │   │   └── rpc_handler.js      # RPC 处理器
+│   │   └── relay_room.js           # 中继房间实现
+│   └── worker.js                   # Worker 入口文件
+├── package.json            # 项目配置
+├── wrangler.toml           # Cloudflare Workers 配置
+└── README.md               # 项目说明
 ```
 
-## 目录说明
+## 功能特性
 
-- `src/index.js`：Worker 入口和 API 路由
-- `src/route-hub.js`：WSS 连接协调
-- `src/store.js`：路由和统计存储
-- `src/auth.js`：后台令牌签名与验证
-- `src/ui.js`：管理后台页面
-- `docs/index.html`：GitHub Pages 介绍页
-- `wrangler.toml`：Cloudflare Workers 配置
+- WebSocket 双向通信中继
+- 基于 Room 的连接管理
+- 使用 Protobuf 进行高效序列化
+- 消息加密与完整性保护
+- 客户端状态管理与心跳维持
+- RPC 请求/响应处理机制
+
+## 纯 P2P 模式
+
+在 `wrangler.toml` 的 `[vars]` 中配置：
+- `EASYTIER_DISABLE_RELAY`: `"1"` 开启纯 P2P，默认 `"0"`
+- `EASYTIER_COMPRESS_RPC`: `"0"` 关闭 RPC 压缩（调试用），默认 `"1"`
+
+修改完配置后按正常方式运行 `wrangler dev` 或部署即可生效。
+
+## Durable Object 地区配置
+
+Durable Object 默认会根据请求来源自动选择最近的地区部署。如需指定地区，可在 `wrangler.toml` 的 `[vars]` 中配置：
+
+- `LOCATION_HINT`: Durable Object 的位置提示，可选值如下：
+
+| 参数 | 地区 |
+|------|------|
+| `wnam` | 西部地区（北美） |
+| `enam` | 东部地区（北美） |
+| `sam` | 南美洲 |
+| `weur` | 西欧 |
+| `eeur` | 东欧 |
+| `apac` | 亚太地区（默认） |
+| `oc` | 大洋洲 |
+| `afr` | 非洲 |
+| `me` | 中东 |
+
+> 详细说明请参考 [Cloudflare 官方文档](https://developers.cloudflare.com/durable-objects/reference/data-location/#supported-locations-1)
+
+修改完配置后按正常方式运行 `wrangler dev` 或部署即可生效。
+
+## 客户端连接说明
+
+部署后，EasyTier 客户端连接地址需要添加路径 `/ws`。
+
+默认情况下，WebSocket路径为`/ws`，该路径可以在`wrangler.toml`中通过`WS_PATH`变量进行自定义。
+
+easytier中端口号使用0为使用协议默认端口，ws对应80，wss对应443。
+
+开发模式:
+```
+ws://your-network-ip:0/ws
+```
+部署后:
+```
+wss://your-deployment.workers.dev:0/ws
+```
+
+## 贡献
+
+欢迎提交 Issue 和 Pull Request 来改进本项目。
 
 ## 许可证
 
-本项目采用 MIT License，详见 `LICENSE`。
+[MIT License](./LICENSE)
+
+## 免责声明
+
+本项目仅供学习交流使用，请勿用于任何商业用途或非法用途。使用本项目代码造成的任何后果，原作者概不负责。

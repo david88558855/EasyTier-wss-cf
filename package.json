@@ -1,10 +1,25 @@
 {
-  "name": "easytier-wss-cf",
-  "private": true,
+  "name": "easytier-ws-relay",
+  "version": "1.0.0",
+  "description": "",
   "type": "module",
+  "main": "src/worker.js",
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
-    "test": "powershell -NoProfile -Command \"Set-Location -LiteralPath $env:INIT_CWD; node --test ./test/auth.test.js\""
+    "dev": "wrangler dev --ip 0.0.0.0",
+    "start": "wrangler dev",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "long": "^5.3.2",
+    "protobufjs": "^8.0.0",
+    "uuid": "^13.0.0",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "protobufjs-cli": "^2.0.0"
   }
 }

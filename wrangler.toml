@@ -1,18 +1,19 @@
-name = "easytier-wss-cf"
-main = "src/index.js"
-compatibility_date = "2026-05-28"
+name = "easytier-ws-relay-worker"
+main = "src/worker.js"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
 
-[[durable_objects.bindings]]
-name = "ADMIN_STORE"
-class_name = "AdminStore"
+[vars]
+WS_PATH = "ws"
+EASYTIER_DISABLE_RELAY = "0"
+EASYTIER_COMPRESS_RPC = "1"
+LOCATION_HINT = "apac"
 
-[[durable_objects.bindings]]
-name = "ROUTE_HUB"
-class_name = "RouteHub"
+[durable_objects]
+bindings = [
+  { name = "RELAY_ROOM", class_name = "RelayRoom" }
+]
 
 [[migrations]]
 tag = "v1"
-new_sqlite_classes = ["AdminStore", "RouteHub"]
-
-[vars]
-APP_NAME = "EasyTier WSS CF"
+new_sqlite_classes = ["RelayRoom"]
