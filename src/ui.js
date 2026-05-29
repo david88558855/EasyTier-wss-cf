@@ -80,6 +80,27 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
       flex-wrap: wrap;
       justify-content: flex-end;
     }
+    .locale-menu {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .locale-pill {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.82);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: transform .18s ease, background .18s ease, color .18s ease, border-color .18s ease;
+    }
+    .locale-pill:hover { transform: translateY(-1px); color: var(--text); }
+    .locale-pill[aria-pressed="true"] {
+      background: rgba(37,99,235,.1);
+      border-color: rgba(37,99,235,.18);
+      color: #1d4ed8;
+    }
     .select-shell {
       display: inline-flex;
       align-items: center;
@@ -364,10 +385,11 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
           </div>
         </div>
         <div class="toolbar">
-          <div class="select-shell">
+          <div class="select-shell hidden" aria-hidden="true">
             <span id="languageLabel" class="muted">Language</span>
             <select id="localeSelect" aria-label="Language"></select>
           </div>
+          <div id="localeMenu" class="locale-menu" aria-label="Language"></div>
           <button id="refreshBtn" class="button ghost" type="button">Refresh</button>
           <button id="loginToggleBtn" class="button primary" type="button">Login</button>
           <button id="logoutBtn" class="button danger hidden" type="button">Logout</button>
@@ -380,9 +402,15 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
         <h1 id="loginTitle">Log in to the dashboard</h1>
         <p id="loginDesc">Use the Cloudflare secret <span class="mono">ADMIN_PASSWORD</span> to unlock the management panel. After login, you can generate API keys for public data access.</p>
       </div>
-      <div class="hero-actions">
-        <button id="loginBtn" class="button primary" type="button">Login</button>
-      </div>
+      <form id="loginForm" class="hero-actions" autocomplete="off">
+        <div style="min-width:min(100%, 320px);">
+          <label id="passwordLabel" for="loginPassword">Password</label>
+          <input id="loginPassword" type="password" placeholder="ADMIN_PASSWORD" autocomplete="current-password" />
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
+          <button id="loginBtn" class="button primary" type="submit">Login</button>
+        </div>
+      </form>
     </section>
 
     <div id="protectedContent" class="protected hidden">
@@ -580,6 +608,8 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
         logout: "Logout",
         loginTitle: "Log in to the dashboard",
         loginDesc: "Use the Cloudflare secret ADMIN_PASSWORD to unlock the management panel. After login, you can generate API keys for public data access.",
+        password: "Password",
+        passwordPlaceholder: "Enter ADMIN_PASSWORD",
         overview: "Overview",
         overviewSub: "Stats and status",
         routes: "Routes",
@@ -596,6 +626,7 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
         apiKeyCount: "API keys",
         overviewTitle: "Overview",
         overviewSub2: "Built for a mobile-friendly experience with a clean, app-like layout.",
+        workersReady: "Workers Ready",
         overviewApiHint: "Public API is protected by a generated key.",
         overviewUrlHint: "Public data endpoint",
         routesTitle: "Routes",
@@ -682,6 +713,8 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
         logout: "退出",
         loginTitle: "登录管理后台",
         loginDesc: "使用 Cloudflare Secret 中的 ADMIN_PASSWORD 解锁面板。登录后可以生成对外 API key。",
+        password: "密码",
+        passwordPlaceholder: "请输入 ADMIN_PASSWORD",
         overview: "概览",
         overviewSub: "统计与状态",
         routes: "路由",
@@ -698,6 +731,7 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
         apiKeyCount: "Key 数",
         overviewTitle: "概览",
         overviewSub2: "面向移动设备优化的简洁应用式布局。",
+        workersReady: "Workers Ready",
         overviewApiHint: "对外 API 受生成的 key 保护。",
         overviewUrlHint: "对外数据接口",
         routesTitle: "路由管理",
@@ -784,6 +818,8 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
         logout: "登出",
         loginTitle: "登入管理後台",
         loginDesc: "使用 Cloudflare Secret 中的 ADMIN_PASSWORD 解鎖面板。登入後可以產生對外 API key。",
+        password: "密碼",
+        passwordPlaceholder: "請輸入 ADMIN_PASSWORD",
         overview: "總覽",
         overviewSub: "統計與狀態",
         routes: "路由",
@@ -800,6 +836,7 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
         apiKeyCount: "Key 數",
         overviewTitle: "總覽",
         overviewSub2: "面向行動裝置最佳化的簡潔應用式版面。",
+        workersReady: "Workers Ready",
         overviewApiHint: "對外 API 受產生的 key 保護。",
         overviewUrlHint: "對外資料端點",
         routesTitle: "路由管理",
@@ -886,6 +923,8 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
         logout: "ログアウト",
         loginTitle: "管理パネルにログイン",
         loginDesc: "Cloudflare Secret の ADMIN_PASSWORD でパネルを開きます。ログイン後、公開 API 用の key を生成できます。",
+        password: "パスワード",
+        passwordPlaceholder: "ADMIN_PASSWORD を入力",
         overview: "概要",
         overviewSub: "統計と状態",
         routes: "ルート",
@@ -902,6 +941,7 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
         apiKeyCount: "Key 数",
         overviewTitle: "概要",
         overviewSub2: "モバイルでも使いやすい、すっきりしたアプリ風レイアウトです。",
+        workersReady: "Workers Ready",
         overviewApiHint: "公開 API は生成した key で保護されます。",
         overviewUrlHint: "公開データのエンドポイント",
         routesTitle: "ルート管理",
@@ -988,6 +1028,8 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
         logout: "로그아웃",
         loginTitle: "관리 패널 로그인",
         loginDesc: "Cloudflare Secret의 ADMIN_PASSWORD로 패널을 엽니다. 로그인 후 공개 API용 key를 생성할 수 있습니다.",
+        password: "????",
+        passwordPlaceholder: "ADMIN_PASSWORD? ??",
         overview: "개요",
         overviewSub: "통계와 상태",
         routes: "라우트",
@@ -1004,6 +1046,7 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
         apiKeyCount: "Key 수",
         overviewTitle: "개요",
         overviewSub2: "모바일에서도 쓰기 좋은 깔끔한 앱형 레이아웃입니다.",
+        workersReady: "Workers Ready",
         overviewApiHint: "공개 API는 생성한 key로 보호됩니다.",
         overviewUrlHint: "공개 데이터 엔드포인트",
         routesTitle: "라우트 관리",
@@ -1105,10 +1148,13 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
     const el = (id) => document.getElementById(id);
     const notice = el("notice");
     const localeSelect = el("localeSelect");
+    const localeMenu = el("localeMenu");
     const topSubtitle = el("topSubtitle");
     const loginToggleBtn = el("loginToggleBtn");
     const logoutBtn = el("logoutBtn");
     const loginPanel = el("loginPanel");
+    const loginForm = el("loginForm");
+    const loginPassword = el("loginPassword");
 
     function t(key) {
       return LOCALES[state.locale][key] ?? LOCALES.en[key] ?? key;
@@ -1171,6 +1217,20 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
       }
     }
 
+    function renderLocaleMenu() {
+      localeMenu.replaceChildren(
+        ...localeOrder.map((locale) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "locale-pill";
+          button.textContent = LOCALES[locale].name;
+          button.setAttribute("aria-pressed", String(locale === state.locale));
+          button.addEventListener("click", () => setLocale(locale));
+          return button;
+        }),
+      );
+    }
+
     function renderStaticText() {
       topSubtitle.textContent = t("topSubtitle");
       el("languageLabel").textContent = t("language");
@@ -1181,6 +1241,8 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
       el("loginDesc").innerHTML = t("loginDesc");
       el("overviewTitle").textContent = t("overviewTitle");
       el("overviewSub2").textContent = t("overviewSub2");
+      el("passwordLabel").textContent = t("password");
+      loginPassword.placeholder = t("passwordPlaceholder");
       el("overviewApiHint").textContent = t("overviewApiHint");
       el("overviewUrlHint").textContent = t("overviewUrlHint");
       el("routesTitle").textContent = t("routesTitle");
@@ -1215,6 +1277,7 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
       el("publicApiUrlLabel").textContent = t("endpoint");
       el("publicApiHeaderLabel").textContent = t("header");
       el("publicApiResultLabel").textContent = t("verificationResult");
+      el("panelBadge2").textContent = t("workersReady");
       el("routeForm").querySelector("#routeEnabled").innerHTML = '<option value="true">' + t("enabled") + '</option><option value="false">' + t("disabled") + '</option>';
       el("sidebarTitle").textContent = t("controlCenter");
       el("sidebarSub").textContent = t("routesSub2");
@@ -1242,6 +1305,7 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
         }),
       );
       localeSelect.value = state.locale;
+      renderLocaleMenu();
       el("overviewApiUrl").textContent = "/api/public/state";
       el("overviewApiExample").textContent = "X-API-Key: your-generated-key";
       el("publicApiUrl").textContent = "/api/public/state";
@@ -1565,8 +1629,9 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
       button.addEventListener("click", () => scrollToTarget(button.dataset.target));
     });
 
-    el("loginBtn").addEventListener("click", async () => {
-      const password = prompt(t("adminPasswordPrompt"));
+    loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const password = loginPassword.value.trim();
       if (!password) return;
       try {
         const data = await api("/api/login", {
@@ -1576,13 +1641,17 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
         setToken(data.token);
         await refresh();
         setAccessLocked(false);
+        loginPassword.value = "";
         showNotice(t("loggedIn"));
       } catch (error) {
         showNotice(error.message || t("loginFailed"), true);
       }
     });
 
-    el("loginToggleBtn").addEventListener("click", () => el("loginPanel").scrollIntoView({ behavior: "smooth" }));
+    el("loginToggleBtn").addEventListener("click", () => {
+      loginPassword.focus();
+      el("loginPanel").scrollIntoView({ behavior: "smooth" });
+    });
     el("logoutBtn").addEventListener("click", () => {
       setToken("");
       state.data = null;
@@ -1659,6 +1728,7 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
       renderStaticText();
       updateCurrentKeyFromStorage();
       setAccessLocked(true);
+      loginPassword.value = "";
       if (state.token) {
         refresh()
           .then(() => setAccessLocked(false))
