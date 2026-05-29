@@ -109,6 +109,7 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
     .button.secondary { background: var(--blue-soft); color: #1d4ed8; }
     .button.danger { background: #fef2f2; color: var(--red); }
     .button.ghost { background: rgba(255,255,255,.82); color: var(--text); border: 1px solid var(--line); }
+    .locked .protected { display: none; }
     .layout {
       max-width: 1440px;
       width: 100%;
@@ -155,6 +156,11 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
     }
     .nav small { display: block; color: var(--muted); margin-top: 2px; }
     .content { min-width: 0; }
+    .login-only {
+      max-width: 780px;
+      margin: 20px auto 0;
+      padding: 0 20px;
+    }
     .hero {
       background: linear-gradient(160deg, rgba(255,255,255,.92), rgba(255,255,255,.75));
       border: 1px solid var(--line);
@@ -369,43 +375,44 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
       </div>
     </div>
 
-    <div id="tabsMobile" class="tabs-mobile">
-      <button data-target="#overviewSection">Overview</button>
-      <button data-target="#routesSection">Routes</button>
-      <button data-target="#apiKeysSection">API Keys</button>
-      <button data-target="#publicApiSection">Public API</button>
-      <button data-target="#eventsSection">Events</button>
-    </div>
+    <section id="loginPanel" class="hero login-only">
+      <div>
+        <h1 id="loginTitle">Log in to the dashboard</h1>
+        <p id="loginDesc">Use the Cloudflare secret <span class="mono">ADMIN_PASSWORD</span> to unlock the management panel. After login, you can generate API keys for public data access.</p>
+      </div>
+      <div class="hero-actions">
+        <button id="loginBtn" class="button primary" type="button">Login</button>
+      </div>
+    </section>
 
-    <div class="layout">
-      <aside class="sidebar">
-        <div class="sidebar-head">
-          <h2 id="sidebarTitle" class="sidebar-title">Control Center</h2>
-          <div id="sidebarSub" class="sidebar-sub">Manage routes and access keys</div>
-        </div>
-        <div class="nav" id="sidebarNav">
-          <button data-target="#overviewSection" aria-selected="true"><span id="navOverview">Overview</span><small id="navOverviewSub">Stats and status</small></button>
-          <button data-target="#routesSection" aria-selected="false"><span id="navRoutes">Routes</span><small id="navRoutesSub">Create and edit routes</small></button>
-          <button data-target="#apiKeysSection" aria-selected="false"><span id="navApiKeys">API Keys</span><small id="navApiKeysSub">Generate and revoke keys</small></button>
-          <button data-target="#publicApiSection" aria-selected="false"><span id="navPublicApi">Public API</span><small id="navPublicApiSub">Verify key to read data</small></button>
-          <button data-target="#eventsSection" aria-selected="false"><span id="navEvents">Events</span><small id="navEventsSub">Recent activity</small></button>
-        </div>
-      </aside>
+    <div id="protectedContent" class="protected">
+      <div id="tabsMobile" class="tabs-mobile">
+        <button data-target="#overviewSection">Overview</button>
+        <button data-target="#routesSection">Routes</button>
+        <button data-target="#apiKeysSection">API Keys</button>
+        <button data-target="#publicApiSection">Public API</button>
+        <button data-target="#eventsSection">Events</button>
+      </div>
 
-      <main class="content">
-        <div id="notice" class="notice hidden"></div>
-
-        <section id="loginPanel" class="hero">
-          <div>
-            <h1 id="loginTitle">Log in to the dashboard</h1>
-            <p id="loginDesc">Use the Cloudflare secret <span class="mono">ADMIN_PASSWORD</span> to unlock the management panel. After login, you can generate API keys for public data access.</p>
+      <div class="layout">
+        <aside class="sidebar">
+          <div class="sidebar-head">
+            <h2 id="sidebarTitle" class="sidebar-title">Control Center</h2>
+            <div id="sidebarSub" class="sidebar-sub">Manage routes and access keys</div>
           </div>
-          <div class="hero-actions">
-            <button id="loginBtn" class="button primary" type="button">Login</button>
+          <div class="nav" id="sidebarNav">
+            <button data-target="#overviewSection" aria-selected="true"><span id="navOverview">Overview</span><small id="navOverviewSub">Stats and status</small></button>
+            <button data-target="#routesSection" aria-selected="false"><span id="navRoutes">Routes</span><small id="navRoutesSub">Create and edit routes</small></button>
+            <button data-target="#apiKeysSection" aria-selected="false"><span id="navApiKeys">API Keys</span><small id="navApiKeysSub">Generate and revoke keys</small></button>
+            <button data-target="#publicApiSection" aria-selected="false"><span id="navPublicApi">Public API</span><small id="navPublicApiSub">Verify key to read data</small></button>
+            <button data-target="#eventsSection" aria-selected="false"><span id="navEvents">Events</span><small id="navEventsSub">Recent activity</small></button>
           </div>
-        </section>
+        </aside>
 
-        <section id="overviewSection" class="section-anchor">
+        <main class="content">
+          <div id="notice" class="notice hidden"></div>
+
+          <section id="overviewSection" class="section-anchor">
           <div class="stats">
             <div class="stat"><strong id="activeConnections">0</strong><span id="activeConnectionsLabel">Active connections</span></div>
             <div class="stat"><strong id="totalConnections">0</strong><span id="totalConnectionsLabel">Total connections</span></div>
@@ -435,9 +442,9 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
               </div>
             </div>
           </div>
-        </section>
+          </section>
 
-        <section id="routesSection" class="section-anchor">
+          <section id="routesSection" class="section-anchor">
           <div class="panel">
             <div class="panel-head">
               <div>
@@ -479,9 +486,9 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
             </form>
           </div>
           <div id="routesList" class="list" style="margin-top:14px;"></div>
-        </section>
+          </section>
 
-        <section id="apiKeysSection" class="section-anchor">
+          <section id="apiKeysSection" class="section-anchor">
           <div class="panel">
             <div class="panel-head">
               <div>
@@ -517,9 +524,9 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
             </div>
             <div id="apiKeysList" class="list" style="margin-top:14px;"></div>
           </div>
-        </section>
+          </section>
 
-        <section id="publicApiSection" class="section-anchor">
+          <section id="publicApiSection" class="section-anchor">
           <div class="panel">
             <div class="panel-head">
               <div>
@@ -541,9 +548,9 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
               </div>
             </div>
           </div>
-        </section>
+          </section>
 
-        <section id="eventsSection" class="section-anchor">
+          <section id="eventsSection" class="section-anchor">
           <div class="panel">
             <div class="panel-head">
               <div>
@@ -553,8 +560,9 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
             </div>
             <div id="eventsList" class="events"></div>
           </div>
-        </section>
-      </main>
+          </section>
+        </main>
+      </div>
     </div>
   </div>
 
@@ -1063,13 +1071,17 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
       return await response.json();
     }
 
+    function setAccessLocked(locked) {
+      document.body.classList.toggle("locked", locked);
+      loginPanel.classList.toggle("hidden", !locked);
+      loginToggleBtn.classList.toggle("hidden", !locked);
+      logoutBtn.classList.toggle("hidden", locked);
+    }
+
     function setToken(token) {
       state.token = token || "";
       if (token) localStorage.setItem(TOKEN_KEY, token);
       else localStorage.removeItem(TOKEN_KEY);
-      loginToggleBtn.classList.toggle("hidden", Boolean(token));
-      logoutBtn.classList.toggle("hidden", !token);
-      loginPanel.classList.toggle("hidden", Boolean(token));
     }
 
     function setLocale(locale) {
@@ -1405,9 +1417,6 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
       renderState(data);
       const apiKeys = await api("/api/admin/api-keys");
       renderApiKeys(apiKeys.apiKeys || []);
-      loginPanel.classList.add("hidden");
-      loginToggleBtn.classList.add("hidden");
-      logoutBtn.classList.remove("hidden");
     }
 
     function renderState(data) {
@@ -1421,9 +1430,6 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
         el("routesList").innerHTML = '<div class="card muted">' + t("noRoutes") + '</div>';
       }
       el("publicApiResult").textContent = t("publicApiHint");
-      if (state.token) {
-        loginPanel.classList.add("hidden");
-      }
     }
 
     async function copyText(value) {
@@ -1481,8 +1487,9 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
           body: JSON.stringify({ password }),
         });
         setToken(data.token);
-        showNotice(t("loggedIn"));
         await refresh();
+        setAccessLocked(false);
+        showNotice(t("loggedIn"));
       } catch (error) {
         showNotice(error.message || t("loginFailed"), true);
       }
@@ -1492,6 +1499,7 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
     el("logoutBtn").addEventListener("click", () => {
       setToken("");
       state.data = null;
+      setAccessLocked(true);
       showNotice(t("logout"));
     });
 
@@ -1563,21 +1571,15 @@ export function renderAdminPage(appName = "EasyTier WSS CF") {
     function boot() {
       renderStaticText();
       updateCurrentKeyFromStorage();
-      setToken(state.token);
+      setAccessLocked(true);
       if (state.token) {
-        refresh().catch(() => {
-          setToken("");
-          showNotice(t("sessionExpired"), true);
-        });
-      }
-      if (state.token) {
-        loginPanel.classList.add("hidden");
-        loginToggleBtn.classList.add("hidden");
-        logoutBtn.classList.remove("hidden");
-      } else {
-        loginPanel.classList.remove("hidden");
-        loginToggleBtn.classList.remove("hidden");
-        logoutBtn.classList.add("hidden");
+        refresh()
+          .then(() => setAccessLocked(false))
+          .catch(() => {
+            setToken("");
+            setAccessLocked(true);
+            showNotice(t("sessionExpired"), true);
+          });
       }
     }
 
