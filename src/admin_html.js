@@ -1472,7 +1472,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
             try {
                 // Fetch rooms list & active peers
                 const res = await fetch('/api/rooms', {
-                    headers: { 'Authorization': 'Bearer ' + token }
+                    headers: { 'Authorization': 'Bearer ' + token, 'X-Admin-Token': token }
                 });
                 if (!res.ok) {
                     if (res.status === 401) {
@@ -1491,8 +1491,8 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                 // Fetch detailed stats for each room to aggregate metrics
                 const roomPromises = globalStats.rooms.map(async (room) => {
                     try {
-                        const rRes = await fetch(\`/api/rooms/\${encodeURIComponent(room.roomId)}/stats\`, {
-                            headers: { 'Authorization': 'Bearer ' + token }
+                        const rRes = await fetch(`/api/rooms/${encodeURIComponent(room.roomId)}/stats`, {
+                            headers: { 'Authorization': 'Bearer ' + token, 'X-Admin-Token': token }
                         });
                         if (rRes.ok) {
                             const rData = await rRes.json();
@@ -1582,13 +1582,13 @@ export const serveAdminDashboard = `<!DOCTYPE html>
             sGradient.setAttribute('y1', '0%');
             sGradient.setAttribute('x2', '100%');
             sGradient.setAttribute('y2', '100%');
-            sGradient.innerHTML = \`<stop offset="0%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#6366f1"/>\`;
+            sGradient.innerHTML = `<stop offset="0%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#6366f1"/>`;
             defs.appendChild(sGradient);
 
             // Peer gradient
             const pGradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
             pGradient.setAttribute('id', 'peerGradient');
-            pGradient.innerHTML = \`<stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#059669"/>\`;
+            pGradient.innerHTML = `<stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#059669"/>`;
             defs.appendChild(pGradient);
             
             svg.appendChild(defs);
@@ -1647,7 +1647,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                 
                 // Mouseover details
                 const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-                title.textContent = \`Peer ID: \${peer.peerId}\\nHostname: \${peer.hostname || 'N/A'}\\nIP: \${peer.ipv4Addr || 'N/A'}\`;
+                title.textContent = `Peer ID: ${peer.peerId}\nHostname: ${peer.hostname || 'N/A'}\nIP: ${peer.ipv4Addr || 'N/A'}`;
                 peerNode.appendChild(title);
                 svg.appendChild(peerNode);
 
@@ -1712,7 +1712,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
         async function viewRoomPeers(roomId) {
             activeSelectedRoomId = roomId;
             document.getElementById('roomPeersCard').style.display = 'block';
-            document.getElementById('roomPeersTitle').innerText = \`Room Peers - \${roomId}\`;
+            document.getElementById('roomPeersTitle').innerText = `Room Peers - ${roomId}`;
             
             // Quick load from local cache first
             const body = document.getElementById('peersTableBody');
@@ -1766,7 +1766,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
             try {
                 const res = await fetch('/api/rooms/' + encodeURIComponent(activeSelectedRoomId) + '/kick?peerId=' + encodeURIComponent(peerId), {
                     method: 'POST',
-                    headers: { 'Authorization': 'Bearer ' + token }
+                    headers: { 'Authorization': 'Bearer ' + token, 'X-Admin-Token': token }
                 });
                 if (res.ok) {
                     alert(translations[currentLang]['msg-kicked-success']);
@@ -1781,7 +1781,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
         async function loadTokens() {
             try {
                 const res = await fetch('/api/tokens', {
-                    headers: { 'Authorization': 'Bearer ' + token }
+                    headers: { 'Authorization': 'Bearer ' + token, 'X-Admin-Token': token }
                 });
                 if (!res.ok) throw new Error('API failed');
                 const data = await res.json();
@@ -1832,7 +1832,8 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
+                        'Authorization': 'Bearer ' + token,
+                        'X-Admin-Token': token
                     },
                     body: JSON.stringify({ description })
                 });
@@ -1849,9 +1850,9 @@ export const serveAdminDashboard = `<!DOCTYPE html>
         async function deleteToken(tokenVal) {
             if (!confirm('Are you sure you want to delete this token?')) return;
             try {
-                const res = await fetch(\`/api/tokens?token=\${encodeURIComponent(tokenVal)}\`, {
+                const res = await fetch(`/api/tokens?token=${encodeURIComponent(tokenVal)}`, {
                     method: 'DELETE',
-                    headers: { 'Authorization': 'Bearer ' + token }
+                    headers: { 'Authorization': 'Bearer ' + token, 'X-Admin-Token': token }
                 });
                 if (res.ok) {
                     alert(translations[currentLang]['msg-deleted-success']);
@@ -1866,7 +1867,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
         async function loadSettings() {
             try {
                 const res = await fetch('/api/config', {
-                    headers: { 'Authorization': 'Bearer ' + token }
+                    headers: { 'Authorization': 'Bearer ' + token, 'X-Admin-Token': token }
                 });
                 if (res.ok) {
                     const data = await res.json();
