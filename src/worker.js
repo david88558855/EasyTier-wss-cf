@@ -51,14 +51,6 @@ export default {
       return jsonOk({ ok: true });
     }
 
-    // 3c. Config endpoint — protected, currently a no-op placeholder
-    if (pathname === '/api/config' && request.method === 'POST') {
-      const token = getBearerToken(request);
-      const payload = token ? await verifyAdminToken(getSecret(env), token) : null;
-      if (!payload) return jsonError('Unauthorized', 401);
-      // Password changes via env variable only; body is ignored
-      return jsonOk({ ok: true });
-    }
 
     // 4. Admin API routing (all proxied to the central __directory__ Durable Object)
     if (pathname.startsWith('/api/')) {

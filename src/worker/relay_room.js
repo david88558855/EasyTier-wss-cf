@@ -7,6 +7,16 @@ import { handleRpcReq, handleRpcResp } from './core/rpc_handler.js';
 import { getPeerManager } from './core/peer_manager.js';
 import { randomU64String } from './core/crypto.js';
 
+function u32ToIp(u32) {
+  if (typeof u32 !== 'number') return '';
+  return [
+    (u32 >>> 24) & 0xff,
+    (u32 >>> 16) & 0xff,
+    (u32 >>> 8) & 0xff,
+    u32 & 0xff
+  ].join('.');
+}
+
 export class RelayRoom {
   constructor(state, env) {
     this.state = state;
@@ -21,32 +31,135 @@ export class RelayRoom {
 
   async fetch(request) {
     const url = new URL(request.url);
-    // Directory API handling
+
+    // 1. Directory API handling
     if (url.pathname.startsWith('/api/__directory__')) {
       return await this._handleDirectoryApi(request);
     }
-    const wsPath = '/' + this.env.WS_PATH || '/ws';
-    if (url.pathname !== wsPath) {
+
+    // 2. Internal DO-to-DO API helpers
+    if (url.pathname === '/api/internal/peer-count') {
+      const count = this.state.getWebSockets().filter(ws => ws.peerId).length;
+      return new Response(JSON.stringify({ count }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/internal/verify-token') {
+      const config = (await this.state.storage.get('config')) ?? { requireToken: false };
+      if (!config.requireToken) {
+        return new Response('OK', { status: 200 });
+      }
+
+      const clientToken = url.searchParams.get('token') || '';
+      const tokens = (await this.state.storage.get('tokens')) ?? [];
+      const isValid = tokens.some(t => t.token === clientToken);
+      if (isValid) {
+        return new Response('OK', { status: 200 });
+      }
+      return new Response('Unauthorized', { status: 401 });
+    }
+
+    // 3. Stats & Kick operations for individual room DOs
+    const statsMatch = url.pathname.match(/^\/api\/rooms\/([^/]+)\/stats$/);
+    if (statsMatch && request.method === 'GET') {
+      const roomId = decodeURIComponent(statsMatch[1]);
+      const isDirectory = this.state.id.toString() === this.env.RELAY_ROOM.idFromName('__directory__').toString();
+      if (!isDirectory) {
+        const websockets = this.state.getWebSockets();
+        const peers = websockets.map(ws => {
+          const peerInfo = this.peerManager._getPeerInfosMap(ws.groupKey || '')?.get(ws.peerId);
+          const ipv4Addr = peerInfo && peerInfo.ipv4Addr && typeof peerInfo.ipv4Addr.addr === 'number'
+            ? u32ToIp(peerInfo.ipv4Addr.addr)
+            : null;
+          return {
+            peerId: ws.peerId || 'Unknown',
+            ipv4Addr: ipv4Addr || 'Pending',
+            hostname: ws.domainName || (peerInfo && peerInfo.hostname) || 'N/A',
+            easytierVersion: (peerInfo && peerInfo.easytierVersion) || 'cf-ws-relay',
+            rxBytes: ws.rxBytes || 0,
+            txBytes: ws.txBytes || 0,
+            connectedAt: ws.connectedAt || Date.now()
+          };
+        });
+        return new Response(JSON.stringify({ roomId, peers }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    const kickMatch = url.pathname.match(/^\/api\/rooms\/([^/]+)\/kick$/);
+    if (kickMatch && request.method === 'POST') {
+      const roomId = decodeURIComponent(kickMatch[1]);
+      const isDirectory = this.state.id.toString() === this.env.RELAY_ROOM.idFromName('__directory__').toString();
+      if (!isDirectory) {
+        const peerId = url.searchParams.get('peerId');
+        if (!peerId) {
+          return new Response('peerId required', { status: 400 });
+        }
+        const websockets = this.state.getWebSockets();
+        const targetWs = websockets.find(ws => ws.peerId === peerId);
+        if (targetWs) {
+          targetWs.close(1000, 'Kicked by administrator');
+          return new Response(JSON.stringify({ ok: true }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+        return new Response(JSON.stringify({ error: 'Peer not found' }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // 4. Admin API endpoints (when handled by directory DO)
+    if (url.pathname.startsWith('/api/')) {
+      return await this._handleAdminApi(request);
+    }
+
+    // 5. WebSocket upgrade handling
+    const wsPath = '/' + (this.env.WS_PATH || 'ws');
+    if (url.pathname !== wsPath && url.pathname !== wsPath + '/') {
       return new Response('Not found', { status: 404 });
     }
     if (request.headers.get('Upgrade') !== 'websocket') {
       return new Response('Expected websocket', { status: 400 });
     }
 
+    // Client connection verification
+    const roomId = url.searchParams.get('room') || 'default';
+    if (roomId !== '__directory__') {
+      const clientToken = url.searchParams.get('token') || url.searchParams.get('client_token') || '';
+      const dirStub = this.env.RELAY_ROOM.get(this.env.RELAY_ROOM.idFromName('__directory__'));
+      const verifyRes = await dirStub.fetch(new Request(`http://localhost/api/internal/verify-token?token=${encodeURIComponent(clientToken)}`));
+      if (!verifyRes.ok) {
+        return new Response('Unauthorized: connection token required or invalid', { status: 401 });
+      }
+
+      // Register room in directory
+      this.state.waitUntil(
+        dirStub.fetch(new Request('http://localhost/api/__directory__/room', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomId, token: 'active' })
+        })).catch(() => {})
+      );
+    }
+
     const pair = new WebSocketPair();
     const server = pair[1];
     const client = pair[0];
-    await this.handleSession(server);
+    await this.handleSession(server, roomId);
 
     return new Response(null, { status: 101, webSocket: client });
   }
 
-  async handleSession(webSocket) {
+  async handleSession(webSocket, roomId) {
     this.state.acceptWebSocket(webSocket);
     // Increment active connection count
     const conn = await this.state.storage.get('connections') ?? 0;
     await this.state.storage.put('connections', conn + 1);
-    this._initSocket(webSocket);
+    this._initSocket(webSocket, { roomId });
   }
 
   async webSocketMessage(ws, message) {
@@ -62,6 +175,7 @@ export class RelayRoom {
         console.warn('[ws] unsupported message type', typeof message);
         return;
       }
+      ws.rxBytes = (ws.rxBytes || 0) + (buffer.length || 0);
       console.log(`[ws] recv len=${buffer.length}`);
       ws.lastSeen = Date.now();
       const header = parseHeader(buffer);
@@ -136,6 +250,20 @@ export class RelayRoom {
     // Decrement connection count
     const conn = await this.state.storage.get('connections') ?? 0;
     await this.state.storage.put('connections', Math.max(0, conn - 1));
+
+    // Automatically deregister empty room from the directory DO
+    const activeCount = this.state.getWebSockets().filter(w => w.peerId).length;
+    if (activeCount === 0) {
+      const roomId = ws.roomId || 'default';
+      if (roomId !== '__directory__') {
+        const dirStub = this.env.RELAY_ROOM.get(this.env.RELAY_ROOM.idFromName('__directory__'));
+        this.state.waitUntil(
+          dirStub.fetch(new Request(`http://localhost/api/__directory__/deregister?roomId=${encodeURIComponent(roomId)}`, {
+            method: 'POST'
+          })).catch(() => {})
+        );
+      }
+    }
   }
 
   async webSocketError(ws) {
@@ -150,11 +278,29 @@ export class RelayRoom {
     ws.serverSessionId = meta.serverSessionId || randomU64String();
     ws.weAreInitiator = false;
     ws.crypto = { enabled: false };
+
+    // Track stats and custom metadata
+    ws.roomId = meta.roomId || ws.roomId || null;
+    ws.connectedAt = meta.connectedAt || ws.connectedAt || Date.now();
+    ws.rxBytes = meta.rxBytes || ws.rxBytes || 0;
+    ws.txBytes = meta.txBytes || ws.txBytes || 0;
+
+    // Dynamic interception of send to track outgoing traffic
+    const originalSend = ws.send;
+    ws.send = function (data) {
+      ws.txBytes = (ws.txBytes || 0) + (data.byteLength || data.length || 0);
+      return originalSend.call(this, data);
+    };
+
     ws.serializeAttachment?.({
       peerId: ws.peerId,
       groupKey: ws.groupKey,
       domainName: ws.domainName,
       serverSessionId: ws.serverSessionId,
+      roomId: ws.roomId,
+      connectedAt: ws.connectedAt,
+      rxBytes: ws.rxBytes,
+      txBytes: ws.txBytes,
     });
   }
 
@@ -193,6 +339,16 @@ export class RelayRoom {
       return new Response('OK', { status: 200 });
     }
 
+    if (path === '/deregister' && request.method === 'POST') {
+      const roomId = url.searchParams.get('roomId');
+      if (roomId) {
+        const dir = await getDir();
+        delete dir[roomId];
+        await setDir(dir);
+      }
+      return new Response('OK', { status: 200 });
+    }
+
     if (path === '/stats' && request.method === 'GET') {
       const [connections, bytesIn] = await Promise.all([
         storage.get('connections') ?? 0,
@@ -209,6 +365,136 @@ export class RelayRoom {
       if (!match) {
         return new Response('Invalid token', { status: 401 });
       }
+    }
+
+    return new Response('Not Found', { status: 404 });
+  }
+
+  // Admin API implementation (called on the __directory__ central Durable Object)
+  async _handleAdminApi(request) {
+    const url = new URL(request.url);
+    const path = url.pathname;
+    const method = request.method;
+    const storage = this.state.storage;
+
+    const getTokens = async () => (await storage.get('tokens')) ?? [];
+    const saveTokens = async (tokens) => await storage.put('tokens', tokens);
+    const getConfig = async () => (await storage.get('config')) ?? { requireToken: false };
+    const saveConfig = async (config) => await storage.put('config', config);
+    const getDir = async () => (await storage.get('directory')) ?? {};
+
+    // 1. GET /api/rooms -> return active rooms with peerCount
+    if (path === '/api/rooms' && method === 'GET') {
+      const dir = await getDir();
+      const roomIds = Object.keys(dir);
+      const rooms = await Promise.all(roomIds.map(async (roomId) => {
+        try {
+          const roomStub = this.env.RELAY_ROOM.get(this.env.RELAY_ROOM.idFromName(roomId));
+          const res = await roomStub.fetch(new Request('http://localhost/api/internal/peer-count'));
+          if (res.ok) {
+            const { count } = await res.json();
+            return { roomId, peerCount: count };
+          }
+        } catch (_) {}
+        return { roomId, peerCount: 0 };
+      }));
+      return new Response(JSON.stringify({ rooms }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // 2. GET /api/rooms/:roomId/stats -> get peers for a room (forward to room DO)
+    const statsMatch = path.match(/^\/api\/rooms\/([^/]+)\/stats$/);
+    if (statsMatch && method === 'GET') {
+      const roomId = decodeURIComponent(statsMatch[1]);
+      const roomStub = this.env.RELAY_ROOM.get(this.env.RELAY_ROOM.idFromName(roomId));
+      return roomStub.fetch(request);
+    }
+
+    // 3. POST /api/rooms/:roomId/kick -> kick a peer (forward to room DO)
+    const kickMatch = path.match(/^\/api\/rooms\/([^/]+)\/kick$/);
+    if (kickMatch && method === 'POST') {
+      const roomId = decodeURIComponent(kickMatch[1]);
+      const roomStub = this.env.RELAY_ROOM.get(this.env.RELAY_ROOM.idFromName(roomId));
+      return roomStub.fetch(request);
+    }
+
+    // 4. GET /api/tokens -> return client tokens
+    if (path === '/api/tokens' && method === 'GET') {
+      const tokens = await getTokens();
+      return new Response(JSON.stringify({ tokens }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // 5. POST /api/tokens -> generate client token
+    if (path === '/api/tokens' && method === 'POST') {
+      let body = { description: '' };
+      try {
+        body = await request.json();
+      } catch (_) {}
+      const { description } = body;
+      const tokens = await getTokens();
+      
+      const bytes = new Uint8Array(24);
+      crypto.getRandomValues(bytes);
+      const token = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+
+      const newToken = {
+        token,
+        description: description || '',
+        createdAt: new Date().toISOString()
+      };
+      tokens.push(newToken);
+      await saveTokens(tokens);
+
+      return new Response(JSON.stringify(newToken), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // 6. DELETE /api/tokens -> delete a client token
+    if (path === '/api/tokens' && method === 'DELETE') {
+      const tokenVal = url.searchParams.get('token');
+      if (!tokenVal) {
+        return new Response('Token required', { status: 400 });
+      }
+      let tokens = await getTokens();
+      tokens = tokens.filter(t => t.token !== tokenVal);
+      await saveTokens(tokens);
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // 7. GET /api/config -> get configuration
+    if (path === '/api/config' && method === 'GET') {
+      const config = await getConfig();
+      return new Response(JSON.stringify(config), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // 8. POST /api/config -> update configuration
+    if (path === '/api/config' && method === 'POST') {
+      let body = {};
+      try {
+        body = await request.json();
+      } catch (_) {}
+      const config = await getConfig();
+      if (body.requireToken !== undefined) {
+        config.requireToken = !!body.requireToken;
+      }
+      await saveConfig(config);
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     return new Response('Not Found', { status: 404 });
