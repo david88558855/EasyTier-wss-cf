@@ -16,6 +16,19 @@ export default {
     const url = new URL(request.url);
     const { pathname } = url;
 
+    // 0. Handle CORS preflight
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Admin-Token',
+          'Access-Control-Max-Age': '86400',
+        },
+      });
+    }
+
     // 1. Health check
     if (pathname === '/healthz') {
       return new Response('ok', { status: 200 });
@@ -96,13 +109,19 @@ function getBearerToken(request) {
 function jsonOk(data) {
   return new Response(JSON.stringify(data), {
     status: 200,
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+    },
   });
 }
 
 function jsonError(message, status) {
   return new Response(JSON.stringify({ error: message }), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+    },
   });
 }

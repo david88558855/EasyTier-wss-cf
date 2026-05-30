@@ -1252,6 +1252,16 @@ export const serveAdminDashboard = `<!DOCTYPE html>
             }
         };
 
+        function safeCreateIcons() {
+            try {
+                if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                    lucide.createIcons();
+                }
+            } catch (e) {
+                console.warn('Lucide icons failed to load:', e);
+            }
+        }
+
         let currentLang = 'en';
         const supportedLangs = ['en', 'zh-CN', 'zh-TW', 'ja', 'ko'];
         let token = localStorage.getItem('easytier_admin_token') || '';
@@ -1663,7 +1673,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
             svg.appendChild(serverNode);
             svg.appendChild(centerLabel);
             
-            lucide.createIcons();
+            safeCreateIcons();
         }
 
         // Render Rooms
@@ -1692,7 +1702,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                     '</td>';
                 body.appendChild(tr);
             });
-            lucide.createIcons();
+            safeCreateIcons();
         }
 
         async function viewRoomPeers(roomId) {
@@ -1744,7 +1754,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                     '</td>';
                 body.appendChild(tr);
             });
-            lucide.createIcons();
+            safeCreateIcons();
         }
 
         async function kickPeer(peerId) {
@@ -1795,7 +1805,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                         '</td>';
                     body.appendChild(tr);
                 });
-                lucide.createIcons();
+                safeCreateIcons();
             } catch (err) {
                 console.error(err);
             }
@@ -1909,7 +1919,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
         }
 
         // Initialize Lucide Icons on start
-        lucide.createIcons();
+        safeCreateIcons();
     </script>
 </body>
 </html>
