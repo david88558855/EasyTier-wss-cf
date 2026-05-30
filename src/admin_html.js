@@ -1358,7 +1358,10 @@ export const serveAdminDashboard = `<!DOCTYPE html>
         async function verifyToken() {
             try {
                 const res = await fetch('/api/auth/verify', {
-                    headers: { 'Authorization': 'Bearer ' + token }
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'X-Admin-Token': token
+                    }
                 });
                 if (res.ok) {
                 showDashboard();
@@ -1385,7 +1388,8 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                     localStorage.setItem('easytier_admin_token', token);
                     document.getElementById('passwordInput').value = '';
                     document.getElementById('loginError').style.display = 'none';
-                    verifyToken();
+                    // Directly show dashboard after successful login to avoid token verification loop issues
+                    showDashboard();
                 } else {
                     document.getElementById('loginError').style.display = 'block';
                 }
