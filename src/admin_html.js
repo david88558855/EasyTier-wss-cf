@@ -1102,7 +1102,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
         "easytier-config-room-ph": "default",
         "easytier-config-token-ph": "Optional token",
         "easytier-config-notes-ph": "Optional notes",
-        "easytier-config-empty": "No EasyTier configs yet. Click \"Add EasyTier Config\" to create one.",
+        "easytier-config-empty": "No EasyTier configs yet. Click Add EasyTier Config to create one.",
         "msg-config-added": "EasyTier config added successfully!",
         "settings-admin-pass": "Change Admin Password",
         "set-new-pass": "New Password",
