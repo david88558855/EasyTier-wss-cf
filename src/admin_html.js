@@ -731,6 +731,10 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                 <i data-lucide="network"></i>
                 <span>EasyTier Admin</span>
             </div>
+            <div class="login-copy" style="text-align: center; margin: 0.5rem 0 1.5rem;">
+                <h1 id="loginTitle" data-i18n="login-title">Sign in to continue</h1>
+                <p id="loginHint" data-i18n="login-hint">Use the admin password configured in Cloudflare Workers to unlock the dashboard.</p>
+            </div>
             
             <div class="form-group" style="text-align: center; margin-bottom: 2rem;">
                 <div class="top-lang-wrapper" style="display: inline-flex;" onclick="document.getElementById('loginLang').focus()">
@@ -749,7 +753,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
             <form onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <label for="passwordInput" data-i18n="login-label">Admin Password</label>
-                    <input type="password" id="passwordInput" class="form-control" placeholder="•••••••" required>
+                    <input type="password" id="passwordInput" class="form-control" data-i18n-placeholder="password-placeholder" placeholder="Enter admin password" required>
                 </div>
                 <button type="submit" class="btn-submit" data-i18n="login-btn">Sign In</button>
             </form>
@@ -1264,6 +1268,55 @@ export const serveAdminDashboard = `<!DOCTYPE html>
 
         let currentLang = 'en';
         const supportedLangs = ['en', 'zh-CN', 'zh-TW', 'ja', 'ko'];
+        const languageNames = {
+            en: 'English',
+            'zh-CN': '简体中文',
+            'zh-TW': '繁體中文',
+            ja: '日本語',
+            ko: '한국어'
+        };
+        const loginCopy = {
+            en: {
+                title: 'Sign in to continue',
+                hint: 'Use the admin password configured in Cloudflare Workers to unlock the dashboard.',
+                label: 'Admin Password',
+                placeholder: 'Enter admin password',
+                button: 'Sign In',
+                error: 'Incorrect password. Please try again.'
+            },
+            'zh-CN': {
+                title: '登录以继续',
+                hint: '请输入在 Cloudflare Workers 中配置的管理密码以进入控制台。',
+                label: '管理员密码',
+                placeholder: '请输入管理员密码',
+                button: '登录',
+                error: '密码错误，请重试。'
+            },
+            'zh-TW': {
+                title: '登入以繼續',
+                hint: '請輸入在 Cloudflare Workers 中設定的管理密碼以進入控制台。',
+                label: '管理員密碼',
+                placeholder: '請輸入管理員密碼',
+                button: '登入',
+                error: '密碼錯誤，請再試一次。'
+            },
+            ja: {
+                title: '続行するにはログインしてください',
+                hint: 'Cloudflare Workers で設定した管理パスワードを入力してダッシュボードを開きます。',
+                label: '管理者パスワード',
+                placeholder: '管理者パスワードを入力',
+                button: 'ログイン',
+                error: 'パスワードが正しくありません。もう一度お試しください。'
+            },
+            ko: {
+                title: '계속하려면 로그인하세요',
+                hint: 'Cloudflare Workers에 설정한 관리자 비밀번호를 입력해 대시보드를 잠금 해제하세요.',
+                label: '관리자 비밀번호',
+                placeholder: '관리자 비밀번호 입력',
+                button: '로그인',
+                error: '비밀번호가 올바르지 않습니다. 다시 시도하세요.'
+            }
+        };
         let token = localStorage.getItem('easytier_admin_token') || '';
         let statsInterval = null;
         let countdown = 5;
@@ -1310,7 +1363,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
         }
 
         function updateUI() {
-            const t = translations[currentLang];
+            const t = translations[currentLang] || translations.en;
             document.title = t["menu-overview"] + " - EasyTier Admin";
             
             document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -1328,6 +1381,13 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                 }
             });
 
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (t[key]) {
+                    el.setAttribute('placeholder', t[key]);
+                }
+            });
+
             // Update page title if tab active
             const activeMenu = document.querySelector('.menu-item.active');
             if (activeMenu) {
@@ -1335,6 +1395,39 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                 document.getElementById('pageTitle').innerText = span.innerText;
             }
             updateCountdownText();
+            updateLanguagePickerLabels();
+            updateLoginUI();
+        }
+
+        function updateLoginUI() {
+            const copy = loginCopy[currentLang] || loginCopy.en;
+            const loginTitle = document.getElementById('loginTitle');
+            const loginHint = document.getElementById('loginHint');
+            const passwordLabel = document.querySelector('label[for="passwordInput"]');
+            const passwordInput = document.getElementById('passwordInput');
+            const loginButton = document.querySelector('#loginScreen button[type="submit"]');
+            const loginError = document.getElementById('loginError');
+
+            if (loginTitle) loginTitle.textContent = copy.title;
+            if (loginHint) loginHint.textContent = copy.hint;
+            if (passwordLabel) passwordLabel.textContent = copy.label;
+            if (passwordInput) passwordInput.setAttribute('placeholder', copy.placeholder);
+            if (loginButton) {
+                const icon = loginButton.querySelector('i');
+                loginButton.textContent = '';
+                if (icon) loginButton.appendChild(icon);
+                loginButton.appendChild(document.createTextNode(' ' + copy.button));
+            }
+            if (loginError) loginError.textContent = copy.error;
+        }
+
+        function updateLanguagePickerLabels() {
+            document.querySelectorAll('.top-lang-select option').forEach(option => {
+                const label = languageNames[option.value];
+                if (label) {
+                    option.textContent = label;
+                }
+            });
         }
 
         function showLogin() {

@@ -100,7 +100,9 @@ wrangler deploy
 
 > **请勿将真实密码提交到代码仓库。** 使用 Cloudflare Secret 可确保密码加密存储，不会在日志中暴露。
 
-管理后台地址：`https://your-worker.workers.dev/`（或 `/admin`）
+管理后台地址：`https://your-worker.workers.dev/`（或你在 Cloudflare 里绑定的自定义域名）
+
+> 说明：这个开源仓库**不会**在 `wrangler.toml` 中绑定任何固定域名。每个使用者都应当在自己的 Cloudflare Dashboard 里，为自己的域名单独添加 Worker Route / Custom Domain。
 
 ## 项目结构
 
@@ -186,6 +188,12 @@ ws://your-network-ip:0/ws
 部署后:
 ```
 wss://your-deployment.workers.dev:0/ws
+
+如果你绑定了自己的域名，也可以直接把 `your-deployment.workers.dev` 替换成你的域名，例如：
+
+```text
+wss://your-domain.example:0/ws
+```
 ```
 
 ## 贡献
