@@ -170,17 +170,20 @@ export const dashboardScript = String.raw`
     if (!body) return;
     body.innerHTML = '';
     if (window.globalStats.rooms.length === 0) {
-      body.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">No active rooms. Connect a client to start.</td></tr>';
+      body.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">' + (translations[currentLang]['rooms-empty'] || 'No active rooms. Connect a client to start.') + '</td></tr>';
       return;
     }
     window.globalStats.rooms.forEach((room) => {
       const tr = document.createElement('tr');
       tr.innerHTML = '<td style="font-weight: 600; color: #ffffff;">' + room.roomId + '</td>' +
         '<td><span class="badge-status badge-success">' + room.peerCount + '</span></td>' +
-        '<td><button class="btn-action" onclick="EasyTierAdmin.viewRoomPeers(' + JSON.stringify(room.roomId) + ')"><i data-lucide="eye" style="width: 14px; height: 14px;"></i> ' + translations[currentLang]['action-view'] + '</button></td>';
+        '<td style="white-space: nowrap;">' +
+        '<button type="button" class="btn-action" onclick="EasyTierAdmin.copyRoomWsUrl(' + JSON.stringify(room.roomId) + ')"><i data-lucide="copy" style="width: 14px; height: 14px;"></i> ' + translations[currentLang]['action-copy-wss'] + '</button> ' +
+        '<button type="button" class="btn-action" onclick="EasyTierAdmin.viewRoomPeers(' + JSON.stringify(room.roomId) + ')"><i data-lucide="eye" style="width: 14px; height: 14px;"></i> ' + translations[currentLang]['action-view'] + '</button></td>';
       body.appendChild(tr);
     });
     api.safeCreateIcons();
+    if (typeof window.refreshTableLabels === 'function') window.refreshTableLabels();
   };
 
   api.viewRoomPeers = async function viewRoomPeers(roomId) {
@@ -189,8 +192,9 @@ export const dashboardScript = String.raw`
     const title = document.getElementById('roomPeersTitle');
     const body = document.getElementById('peersTableBody');
     if (card) card.style.display = 'block';
-    if (title) title.innerText = 'Room Peers - ' + roomId;
-    if (body) body.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">Loading...</td></tr>';
+    const titleTpl = translations[currentLang]['room-peers-title'] || 'Room Peers — {room}';
+    if (title) title.innerText = titleTpl.replace('{room}', roomId);
+    if (body) body.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">' + (translations[currentLang]['loading'] || 'Loading...') + '</td></tr>';
     api.loadStats();
   };
 
@@ -205,7 +209,7 @@ export const dashboardScript = String.raw`
     if (!body) return;
     body.innerHTML = '';
     if (!peers || peers.length === 0) {
-      body.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">No peers in this room.</td></tr>';
+      body.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">' + (translations[currentLang]['peers-empty'] || '') + '</td></tr>';
       return;
     }
     peers.forEach((peer) => {
@@ -225,10 +229,24 @@ export const dashboardScript = String.raw`
       body.appendChild(tr);
     });
     api.safeCreateIcons();
+    if (typeof window.refreshTableLabels === 'function') window.refreshTableLabels();
+  };
+
+  api.copyRoomWsUrl = async function copyRoomWsUrl(roomId) {
+    await api.ensureServerMeta();
+    const room = String(roomId || 'default').trim() || 'default';
+    let clientToken = '';
+    if (window.serverRequireToken) {
+      clientToken = prompt(translations[currentLang]['prompt-room-token'] || 'Client token (required)', '') || '';
+      if (!clientToken.trim()) return;
+    }
+    const wssUrl = api.buildClientWsUrl(room, clientToken.trim());
+    await api.copyWithToast(wssUrl, 'msg-copied');
   };
 
   api.kickPeer = async function kickPeer(peerId) {
-    if (!confirm('Are you sure you want to kick peer ' + peerId + '?')) return;
+    const tpl = translations[currentLang]['msg-kick-confirm'] || 'Kick peer {id}?';
+    if (!confirm(tpl.replace('{id}', peerId))) return;
     try {
       const res = await fetch('/api/rooms/' + encodeURIComponent(window.activeSelectedRoomId) + '/kick?peerId=' + encodeURIComponent(peerId), {
         method: 'POST',

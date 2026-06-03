@@ -6,6 +6,18 @@ import { handleHandshake, handlePing, handleForwarding } from './core/basic_hand
 import { handleRpcReq, handleRpcResp } from './core/rpc_handler.js';
 import { getPeerManager } from './core/peer_manager.js';
 import { randomU64String } from './core/crypto.js';
+import { persistWebSocketAttachment } from './core/ws_attachment.js';
+import {
+  buildEasyTierWsUrl,
+  buildEasyTierCoreCommand,
+  mergeEasyTierWsUrl,
+} from '../ws_url.js';
+import { sanitizeConfigForPublic } from '../config_public.js';
+
+function requestPublicOrigin(request) {
+  const url = new URL(request.url);
+  return `${url.protocol}//${url.host}`;
+}
 
 function u32ToIp(u32) {
   if (typeof u32 !== 'number') return '';
@@ -194,21 +206,11 @@ export class RelayRoom {
           handlePing(ws, header, payload);
           break;
         case PacketType.RpcReq:
-          if (header.toPeerId !== PacketType.Invalid && header.toPeerId !== undefined && header.toPeerId !== null && header.toPeerId !== 0 && header.toPeerId !== PacketType.Invalid && header.toPeerId !== undefined && header.toPeerId !== null && header.toPeerId !== 0 && header.toPeerId !== PacketType.Invalid) {
-            // fallthrough handled below; guard keeps eslint quiet
-          }
-          if (header.toPeerId === PacketType.Invalid /* never true */) {
-            // no-op
-          }
-          if (header.toPeerId === undefined || header.toPeerId === null) {
+          if (header.toPeerId === undefined || header.toPeerId === null || header.toPeerId === MY_PEER_ID) {
             handleRpcReq(ws, header, payload, this.types);
-            break;
+          } else {
+            handleForwarding(ws, header, buffer, this.types);
           }
-          if (header.toPeerId === MY_PEER_ID) {
-            handleRpcReq(ws, header, payload, this.types);
-            break;
-          }
-          handleForwarding(ws, header, buffer, this.types);
           break;
         case PacketType.RpcResp:
           if (header.toPeerId === undefined || header.toPeerId === null || header.toPeerId === MY_PEER_ID) {
@@ -292,16 +294,7 @@ export class RelayRoom {
       return originalSend.call(this, data);
     };
 
-    ws.serializeAttachment?.({
-      peerId: ws.peerId,
-      groupKey: ws.groupKey,
-      domainName: ws.domainName,
-      serverSessionId: ws.serverSessionId,
-      roomId: ws.roomId,
-      connectedAt: ws.connectedAt,
-      rxBytes: ws.rxBytes,
-      txBytes: ws.txBytes,
-    });
+    persistWebSocketAttachment(ws);
   }
 
   _restoreSocket(ws) {
@@ -444,9 +437,10 @@ export class RelayRoom {
       try {
         body = await request.json();
       } catch (_) {}
-      const { description } = body;
+      const { description, room: roomParam } = body;
+      const roomId = String(roomParam || '').trim() || 'default';
       const tokens = await getTokens();
-      
+
       const bytes = new Uint8Array(24);
       crypto.getRandomValues(bytes);
       const token = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -454,12 +448,22 @@ export class RelayRoom {
       const newToken = {
         token,
         description: description || '',
+        roomId,
         createdAt: new Date().toISOString()
       };
       tokens.push(newToken);
       await saveTokens(tokens);
 
-      return new Response(JSON.stringify(newToken), {
+      let wssUrl = null;
+      try {
+        wssUrl = buildEasyTierWsUrl(requestPublicOrigin(request), {
+          room: roomId,
+          token,
+          wsPath: this.env.WS_PATH || 'ws',
+        });
+      } catch (_) {}
+
+      return new Response(JSON.stringify({ ...newToken, wssUrl }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -480,45 +484,114 @@ export class RelayRoom {
       });
     }
 
-    // 7. GET /api/config -> get configuration
+    // 7. GET /api/ws-url -> build client WSS URL (admin)
+    if (path === '/api/ws-url' && method === 'GET') {
+      const origin = url.searchParams.get('origin') || '';
+      const room = url.searchParams.get('room') || 'default';
+      const token = url.searchParams.get('token') || '';
+      const wsPath = this.env.WS_PATH || 'ws';
+      if (!origin) {
+        return new Response(JSON.stringify({ error: 'origin query parameter is required' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      try {
+        const wssUrl = buildEasyTierWsUrl(origin, { room, token, wsPath });
+        const networkName = url.searchParams.get('networkName') || '';
+        const networkSecret = url.searchParams.get('networkSecret') || '';
+        const payload = { wssUrl, wsPath };
+        if (networkName || networkSecret) {
+          payload.easyTierCommand = buildEasyTierCoreCommand(wssUrl, networkName, networkSecret);
+        }
+        return new Response(JSON.stringify(payload), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message || 'invalid origin' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // 8. GET /api/config -> get configuration
     if (path === '/api/config' && method === 'GET') {
       const config = await getConfig();
-      return new Response(JSON.stringify(config), {
+      config.wsPath = this.env.WS_PATH || 'ws';
+      return new Response(JSON.stringify(sanitizeConfigForPublic(config)), {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    // 8. POST /api/config -> update configuration
+    // 9. POST /api/config -> update configuration
     if (path === '/api/config' && method === 'POST') {
       let body = {};
       try {
         body = await request.json();
       } catch (_) {}
       const config = await getConfig();
+      config.wsPath = this.env.WS_PATH || 'ws';
       if (body.requireToken !== undefined) {
         config.requireToken = !!body.requireToken;
       }
+      if (body.deleteEasyTierConfigId) {
+        const id = String(body.deleteEasyTierConfigId);
+        config.easyTierConfigs = config.easyTierConfigs.filter((entry) => entry.id !== id);
+      }
       if (body.easyTierConfig && typeof body.easyTierConfig === 'object') {
-        const nextConfig = {
-          id: crypto.randomUUID(),
-          name: String(body.easyTierConfig.name || '').trim(),
-          wssUrl: String(body.easyTierConfig.wssUrl || '').trim(),
-          roomId: String(body.easyTierConfig.roomId || '').trim(),
-          clientToken: String(body.easyTierConfig.clientToken || '').trim(),
-          notes: String(body.easyTierConfig.notes || '').trim(),
-          createdAt: new Date().toISOString(),
-        };
-        if (!nextConfig.name || !nextConfig.wssUrl) {
-          return new Response(JSON.stringify({ error: 'name and wssUrl are required' }), {
+        const input = body.easyTierConfig;
+        const roomId = String(input.roomId || '').trim() || 'default';
+        const clientToken = String(input.clientToken || '').trim();
+        const wsPath = this.env.WS_PATH || 'ws';
+        let wssUrl = String(input.wssUrl || '').trim();
+        if (!wssUrl) {
+          return new Response(JSON.stringify({ error: 'wssUrl is required' }), {
             status: 400,
             headers: { 'Content-Type': 'application/json' }
           });
         }
+        try {
+          if (wssUrl.includes('?')) {
+            wssUrl = mergeEasyTierWsUrl(wssUrl, { room: roomId, token: clientToken });
+          } else {
+            wssUrl = buildEasyTierWsUrl(wssUrl, { room: roomId, token: clientToken, wsPath });
+          }
+        } catch (e) {
+          return new Response(JSON.stringify({ error: e.message || 'invalid wssUrl' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+        const networkName = String(input.networkName || '').trim();
+        const networkSecret = String(input.networkSecret || '').trim();
+        const nextConfig = {
+          id: crypto.randomUUID(),
+          name: String(input.name || '').trim(),
+          wssUrl,
+          roomId,
+          clientToken,
+          networkName,
+          notes: String(input.notes || '').trim(),
+          createdAt: new Date().toISOString(),
+        };
+        if (!nextConfig.name) {
+          return new Response(JSON.stringify({ error: 'name is required' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+        if (networkName || networkSecret) {
+          nextConfig.easyTierCommand = buildEasyTierCoreCommand(wssUrl, networkName, networkSecret);
+        }
         config.easyTierConfigs.unshift(nextConfig);
       }
       await saveConfig(config);
-      return new Response(JSON.stringify({ ok: true, config }), {
+      const publicConfig = sanitizeConfigForPublic(config);
+      publicConfig.wsPath = this.env.WS_PATH || 'ws';
+      return new Response(JSON.stringify({ ok: true, config: publicConfig }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
       });

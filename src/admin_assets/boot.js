@@ -65,6 +65,10 @@ export const bootScript = String.raw`
   window.closeEasyTierConfigModal = api.closeEasyTierConfigModal;
   window.handleCreateEasyTierConfig = api.handleCreateEasyTierConfig;
   window.handleToggleRequireToken = api.handleToggleRequireToken;
-  window.handleChangePassword = api.handleChangePassword;
+  window.copyTokenWsUrl = api.copyTokenWsUrl;
+  window.copyRoomWsUrl = api.copyRoomWsUrl;
+  window.copyEasyTierConfigUrl = api.copyEasyTierConfigUrl;
+  window.copyEasyTierCommand = api.copyEasyTierCommand;
+  window.deleteEasyTierConfig = api.deleteEasyTierConfig;
 })();
 `;

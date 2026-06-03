@@ -1,3 +1,5 @@
+import { buildAdminI18nScript } from "./admin_i18n/index.js";
+
 export const serveAdminDashboard = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1355,6 +1357,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                                     <th data-i18n="th-room-id">Room ID</th>
                                     <th data-i18n="th-config-token">Client Token</th>
                                     <th data-i18n="th-created">Created At</th>
+                                    <th data-i18n="th-actions">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="easyTierConfigsTableBody">
@@ -1398,9 +1401,13 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                     <label for="tokenDescInput" data-i18n="th-desc">Description</label>
                     <input type="text" id="tokenDescInput" class="form-control" placeholder="e.g. Home Node, Office VPS" required>
                 </div>
+                <div class="form-group">
+                    <label for="tokenRoomInput" data-i18n="easytier-config-room">Room ID</label>
+                    <input type="text" id="tokenRoomInput" class="form-control" data-i18n-placeholder="easytier-config-room-ph" placeholder="default" value="default">
+                </div>
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel" onclick="closeCreateTokenModal()" data-i18n="btn-cancel">Cancel</button>
-                    <button type="submit" class="btn-submit" style="width: auto; padding: 0.6rem 1.5rem;" data-i18n="btn-confirm">Generate</button>
+                    <button type="submit" class="btn-submit" style="width: auto; padding: 0.6rem 1.5rem;" data-i18n="btn-generate-token">Generate</button>
                 </div>
             </form>
         </div>
@@ -1425,8 +1432,18 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                 </div>
                 <div class="form-group">
                     <label for="easyTierConfigTokenInput" data-i18n="easytier-config-token">Client Token</label>
-                    <input type="text" id="easyTierConfigTokenInput" class="form-control" data-i18n-placeholder="easytier-config-token-ph" placeholder="Optional token">
+                    <input type="text" id="easyTierConfigTokenInput" class="form-control" list="clientTokenList" data-i18n-placeholder="easytier-config-token-ph" placeholder="Optional token">
+                    <datalist id="clientTokenList"></datalist>
                 </div>
+                <div class="form-group">
+                    <label for="easyTierConfigNetworkNameInput" data-i18n="easytier-config-network-name">Network Name</label>
+                    <input type="text" id="easyTierConfigNetworkNameInput" class="form-control" data-i18n-placeholder="easytier-config-network-name-ph" placeholder="Optional, for CLI command">
+                </div>
+                <div class="form-group">
+                    <label for="easyTierConfigNetworkSecretInput" data-i18n="easytier-config-network-secret">Network Secret</label>
+                    <input type="password" id="easyTierConfigNetworkSecretInput" class="form-control" data-i18n-placeholder="easytier-config-network-secret-ph" placeholder="Optional, for CLI command">
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 1rem;" data-i18n="easytier-config-wss-hint">WSS base URL will be combined with Room ID and Token into a full peer URL (?room=...&amp;token=...).</p>
                 <div class="form-group">
                     <label for="easyTierConfigNotesInput" data-i18n="easytier-config-notes">Notes</label>
                     <textarea id="easyTierConfigNotesInput" class="form-control" rows="3" data-i18n-placeholder="easytier-config-notes-ph" placeholder="Optional notes"></textarea>
@@ -1439,290 +1456,9 @@ export const serveAdminDashboard = `<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- Translations & Dashboard JS Logic -->
+    <!-- Translations: src/admin_i18n/locales/*.js -->
     <script>
-        const translations = {
-    en: {
-        "login-label": "Admin Password",
-        "login-btn": "Sign In",
-        "login-error": "Incorrect password. Please try again.",
-        "menu-overview": "Overview",
-        "menu-rooms": "Rooms & Peers",
-        "menu-tokens": "Client Tokens",
-        "menu-configs": "EasyTier Configurations",
-        "menu-settings": "Settings",
-        "role-admin": "Administrator",
-        "stat-status": "Server Status",
-        "stat-online": "Online",
-        "stat-active-rooms": "Active Rooms",
-        "stat-connected-peers": "Total Peers",
-        "stat-total-traffic": "Traffic (Rx/Tx)",
-        "topo-map-title": "Network Topology Map",
-        "topo-no-nodes": "No nodes connected. WSS relay is empty.",
-        "rooms-list-title": "Active Relay Rooms",
-        "th-room-name": "Room ID",
-        "th-peer-count": "Active Peers",
-        "th-actions": "Actions",
-        "btn-close": "Close",
-        "th-peer-id": "Peer ID",
-        "th-virtual-ip": "Virtual IP",
-        "th-hostname": "Hostname",
-        "th-version": "Version",
-        "th-rx-tx": "Rx / Tx Traffic",
-        "th-conn-time": "Connected Time",
-        "tokens-title": "Client Connection Tokens",
-        "btn-gen-token": "Generate Token",
-        "th-token": "Token",
-        "th-desc": "Description",
-        "th-created": "Created At",
-        "settings-general": "General Configuration",
-        "set-req-token-title": "Require Connection Token",
-        "set-req-token-desc": "Enforce EasyTier clients to connect with a valid token parameter.",
-        "easytier-configs-title": "EasyTier Configurations",
-        "btn-add-easytier-config": "Add EasyTier Config",
-        "th-config-name": "Name",
-        "th-wss-url": "WSS Address",
-        "th-room-id": "Room ID",
-        "th-config-token": "Client Token",
-        "easytier-config-modal-title": "Add EasyTier Config",
-        "easytier-config-name": "Config Name",
-        "easytier-config-wss": "WSS Address",
-        "easytier-config-room": "Room ID",
-        "easytier-config-token": "Client Token",
-        "easytier-config-notes": "Notes",
-        "easytier-config-name-ph": "Home Node",
-        "easytier-config-wss-ph": "wss://example.com/ws",
-        "easytier-config-room-ph": "default",
-        "easytier-config-token-ph": "Optional token",
-        "easytier-config-notes-ph": "Optional notes",
-        "easytier-config-empty": "No EasyTier configs yet. Click Add EasyTier Config to create one.",
-        "msg-config-added": "EasyTier config added successfully!",
-        "settings-admin-pass": "Change Admin Password",
-        "set-new-pass": "New Password",
-        "btn-save": "Save Password",
-        "btn-cancel": "Cancel",
-        "btn-confirm": "Confirm",
-        "alert-security-title": "Security Warning: ",
-        "alert-security-desc": "You are using the default admin password 'admin'. Please change it immediately.",
-        "action-view": "View Peers",
-        "action-kick": "Kick",
-        "action-ban": "Ban",
-        "action-delete": "Delete",
-        "msg-changed-pass": "Admin password updated successfully!",
-        "msg-gen-success": "Token generated successfully!",
-        "msg-kicked-success": "Peer kicked successfully!",
-        "msg-deleted-success": "Token deleted successfully!",
-        "set-pass-env-note": "The admin password is configured via the ADMIN_PASSWORD environment variable in the Cloudflare Workers dashboard. Changes take effect after redeployment."
-    },
-    "zh-CN": {
-        "login-label": "管理员密码",
-        "login-btn": "登录",
-        "login-error": "密码错误，请重试",
-        "menu-overview": "系统概览",
-        "menu-rooms": "房间与节点",
-        "menu-tokens": "连接令牌",
-        "menu-settings": "设置",
-        "role-admin": "系统管理员",
-        "stat-status": "服务器状态",
-        "stat-online": "在线",
-        "stat-active-rooms": "活跃房间",
-        "stat-connected-peers": "在线节点数",
-        "stat-total-traffic": "流量 (接收/发送)",
-        "topo-map-title": "网络拓扑图",
-        "topo-no-nodes": "暂无节点连接，中继服务器空闲。",
-        "rooms-list-title": "活跃中继房间列表",
-        "th-room-name": "房间 ID",
-        "th-peer-count": "在线节点",
-        "th-actions": "操作",
-        "btn-close": "关闭",
-        "th-peer-id": "节点 ID",
-        "th-virtual-ip": "虚拟 IP (EasyTier)",
-        "th-hostname": "主机名",
-        "th-version": "EasyTier 版本",
-        "th-rx-tx": "接收 / 发送",
-        "th-conn-time": "已连接时间",
-        "tokens-title": "客户端连接令牌 (Tokens)",
-        "btn-gen-token": "创建令牌",
-        "th-token": "令牌",
-        "th-desc": "描述",
-        "th-created": "创建时间",
-        "settings-general": "全局配置",
-        "set-req-token-title": "启用连接令牌校验",
-        "set-req-token-desc": "强制 EasyTier 客户端在连接时携带合法的 token 查询参数，否则拒绝连接。",
-        "settings-admin-pass": "修改管理员密码",
-        "set-new-pass": "输入新密码",
-        "btn-save": "保存",
-        "btn-cancel": "取消",
-        "btn-confirm": "确认",
-        "alert-security-title": "安全警告：",
-        "alert-security-desc": "您当前正在使用默认管理员密码 'admin'，请立即修改以保证安全！",
-        "action-view": "查看节点",
-        "action-kick": "踢出",
-        "action-ban": "加入黑名单",
-        "action-delete": "删除",
-        "msg-changed-pass": "管理员密码修改成功！",
-        "msg-gen-success": "令牌生成成功！",
-        "msg-kicked-success": "节点已被踢出！",
-        "msg-deleted-success": "令牌已删除！",
-        "set-pass-env-note": "管理员密码通过 Cloudflare Workers 仪表板的 ADMIN_PASSWORD 环境变量配置，修改后重新部署生效。"
-    },
-    "zh-TW": {
-        "login-label": "管理員密碼",
-        "login-btn": "登入",
-        "login-error": "密碼錯誤，請重試",
-        "menu-overview": "系統概覽",
-        "menu-rooms": "房間與節點",
-        "menu-tokens": "連線權杖",
-        "menu-settings": "設定",
-        "role-admin": "系統管理員",
-        "stat-status": "伺服器狀態",
-        "stat-online": "線上",
-        "stat-active-rooms": "活躍房間",
-        "stat-connected-peers": "線上節點數",
-        "stat-total-traffic": "流量 (接收/傳送)",
-        "topo-map-title": "網路拓撲圖",
-        "topo-no-nodes": "暫無節點連線，中繼伺服器空閒。",
-        "rooms-list-title": "活躍中繼房間清單",
-        "th-room-name": "房間 ID",
-        "th-peer-count": "線上節點",
-        "th-actions": "操作",
-        "btn-close": "關閉",
-        "th-peer-id": "節點 ID",
-        "th-virtual-ip": "虛擬 IP (EasyTier)",
-        "th-hostname": "主機名稱",
-        "th-version": "EasyTier 版本",
-        "th-rx-tx": "接收 / 傳送",
-        "th-conn-time": "已連線時間",
-        "tokens-title": "用戶端連線權杖 (Tokens)",
-        "btn-gen-token": "建立權杖",
-        "th-token": "權杖",
-        "th-desc": "描述",
-        "th-created": "建立時間",
-        "settings-general": "全域設定",
-        "set-req-token-title": "啟用連線權杖驗證",
-        "set-req-token-desc": "強制 EasyTier 用戶端在連線時攜帶合法的 token 查詢參數，否則拒絕連線。",
-        "settings-admin-pass": "變更管理員密碼",
-        "set-new-pass": "輸入新密碼",
-        "btn-save": "儲存",
-        "btn-cancel": "取消",
-        "btn-confirm": "確認",
-        "alert-security-title": "安全警告：",
-        "alert-security-desc": "您目前正在使用預設管理員密碼 'admin'，請立即變更以確保安全！",
-        "action-view": "查看節點",
-        "action-kick": "踢出",
-        "action-ban": "加入黑名單",
-        "action-delete": "刪除",
-        "msg-changed-pass": "管理員密碼變更成功！",
-        "msg-gen-success": "權杖建立成功！",
-        "msg-kicked-success": "節點已被踢出！",
-        "msg-deleted-success": "權杖已刪除！",
-        "set-pass-env-note": "管理員密碼可在 Cloudflare Workers 儀表板以 ADMIN_PASSWORD 環境變數設定，修改後重新部署生效。"
-    },
-    ja: {
-        "login-label": "管理者パスワード",
-        "login-btn": "ログイン",
-        "login-error": "パスワードが正しくありません。再試行してください",
-        "menu-overview": "システム概要",
-        "menu-rooms": "部屋とノード",
-        "menu-tokens": "接続トークン",
-        "menu-settings": "設定",
-        "role-admin": "システム管理者",
-        "stat-status": "稼働状態",
-        "stat-online": "オンライン",
-        "stat-active-rooms": "アクティブな部屋",
-        "stat-connected-peers": "接続中ノード数",
-        "stat-total-traffic": "転送量 (受信/送信)",
-        "topo-map-title": "ネットワークトポロジーマップ",
-        "topo-no-nodes": "接続されているノードはありません。中継サーバーは空いています。",
-        "rooms-list-title": "アクティブな部屋のリスト",
-        "th-room-name": "部屋 ID",
-        "th-peer-count": "接続ノード数",
-        "th-actions": "操作",
-        "btn-close": "閉じる",
-        "th-peer-id": "ノード ID",
-        "th-virtual-ip": "仮想 IP",
-        "th-hostname": "ホスト名",
-        "th-version": "バージョン",
-        "th-rx-tx": "受信 / 送信",
-        "th-conn-time": "接続時間",
-        "tokens-title": "クライアント接続用トークン",
-        "btn-gen-token": "トークン生成",
-        "th-token": "トークン",
-        "th-desc": "説明",
-        "th-created": "作成日時",
-        "settings-general": "一般設定",
-        "set-req-token-title": "接続トークンの検証を強制",
-        "set-req-token-desc": "クライアントが有効な token パラメータを持って接続することを強制します。",
-        "settings-admin-pass": "管理者パスワードの変更",
-        "set-new-pass": "新しいパスワード",
-        "btn-save": "保存",
-        "btn-cancel": "キャンセル",
-        "btn-confirm": "確認",
-        "alert-security-title": "セキュリティ警告：",
-        "alert-security-desc": "デフォルトの管理者パスワード 'admin' を使用しています。すぐに変更してください。",
-        "action-view": "詳細表示",
-        "action-kick": "キック",
-        "action-ban": "禁止リストへ",
-        "action-delete": "削除",
-        "msg-changed-pass": "管理者パスワードが更新されました。",
-        "msg-gen-success": "トークンが生成されました。",
-        "msg-kicked-success": "ノードをキックしました。",
-        "msg-deleted-success": "トークンを削除しました。",
-        "set-pass-env-note": "管理者パスワードは Cloudflare Workers ダッシュボードの ADMIN_PASSWORD 環境変数で設定します。変更は再デプロイ後に有効になります。"
-    },
-    ko: {
-        "login-label": "관리자 비밀번호",
-        "login-btn": "로그인",
-        "login-error": "비밀번호가 올바르지 않습니다. 다시 시도하십시오.",
-        "menu-overview": "시스템 개요",
-        "menu-rooms": "룸 및 피어",
-        "menu-tokens": "연결 토큰",
-        "menu-settings": "설정",
-        "role-admin": "시스템 관리자",
-        "stat-status": "서버 상태",
-        "stat-online": "온라인",
-        "stat-active-rooms": "활성 룸",
-        "stat-connected-peers": "온라인 피어 수",
-        "stat-total-traffic": "트래픽 (수신/전송)",
-        "topo-map-title": "네트워크 토폴로지 맵",
-        "topo-no-nodes": "연결된 노드가 없습니다. WSS 릴레이가 비어 있습니다.",
-        "rooms-list-title": "활성 릴레이 룸 목록",
-        "th-room-name": "룸 ID",
-        "th-peer-count": "연결 피어",
-        "th-actions": "작업",
-        "btn-close": "닫기",
-        "th-peer-id": "피어 ID",
-        "th-virtual-ip": "가상 IP",
-        "th-hostname": "호스트 이름",
-        "th-version": "버전",
-        "th-rx-tx": "수신 / 전송",
-        "th-conn-time": "연결 시간",
-        "tokens-title": "클라이언트 연결 토큰",
-        "btn-gen-token": "토큰 생성",
-        "th-token": "토큰",
-        "th-desc": "설명",
-        "th-created": "생성일",
-        "settings-general": "일반 설정",
-        "set-req-token-title": "연결 토큰 검증 필수",
-        "set-req-token-desc": "EasyTier 클라이언트가 연결 시 유효한 token 파라미터를 보내도록 강제합니다.",
-        "settings-admin-pass": "관리자 비밀번호 변경",
-        "set-new-pass": "새 비밀번호",
-        "btn-save": "저장",
-        "btn-cancel": "취소",
-        "btn-confirm": "확인",
-        "alert-security-title": "보안 경고：",
-        "alert-security-desc": "기본 관리자 비밀번호 'admin' 을 사용중입니다. 즉시 변경하십시오.",
-        "action-view": "피어 보기",
-        "action-kick": "추방",
-        "action-ban": "차단 목록",
-        "action-delete": "삭제",
-        "msg-changed-pass": "비밀번호가 성공적으로 변경되었습니다!",
-        "msg-gen-success": "토큰이 생성되었습니다!",
-        "msg-kicked-success": "피어가 성공적으로 추방되었습니다!",
-        "msg-deleted-success": "토큰이 삭제되었습니다!",
-        "set-pass-env-note": "관리자 비밀번호는 Cloudflare Workers 대시보드의 ADMIN_PASSWORD 환경 변수로 설정됩니다. 변경 사항은 재배포 후 적용됩니다."
-    }
-};
+${buildAdminI18nScript()}
 
         function safeCreateIcons() {
             try {
@@ -1767,114 +1503,71 @@ export const serveAdminDashboard = `<!DOCTYPE html>
             window.addEventListener('resize', updateMobileNav);
         }
 
-        // Add data-label attributes to table cells for mobile card view
-        function setupTableLabels() {
-            const tableLabels = {
-                'roomsTableBody': {
-                    0: 'Room ID',
-                    1: 'Active Peers',
-                    2: 'Actions'
+        function getTableLabels() {
+            const t = translations[currentLang] || translations.en;
+            return {
+                roomsTableBody: {
+                    0: t['th-room-name'],
+                    1: t['th-peer-count'],
+                    2: t['th-actions']
                 },
-                'peersTableBody': {
-                    0: 'Peer ID',
-                    1: 'Virtual IP',
-                    2: 'Hostname',
-                    3: 'Version',
-                    4: 'Traffic (Rx/Tx)',
-                    5: 'Connected Time',
-                    6: 'Actions'
+                peersTableBody: {
+                    0: t['th-peer-id'],
+                    1: t['th-virtual-ip'],
+                    2: t['th-hostname'],
+                    3: t['th-version'],
+                    4: t['th-rx-tx'],
+                    5: t['th-conn-time'],
+                    6: t['th-actions']
                 },
-                'tokensTableBody': {
-                    0: 'Token',
-                    1: 'Description',
-                    2: 'Created At',
-                    3: 'Actions'
+                tokensTableBody: {
+                    0: t['th-token'],
+                    1: t['th-desc'],
+                    2: t['th-created'],
+                    3: t['th-actions']
                 },
-                'easyTierConfigsTableBody': {
-                    0: 'Name',
-                    1: 'WSS Address',
-                    2: 'Room ID',
-                    3: 'Client Token',
-                    4: 'Created At'
+                easyTierConfigsTableBody: {
+                    0: t['th-config-name'],
+                    1: t['th-wss-url'],
+                    2: t['th-room-id'],
+                    3: t['th-config-token'],
+                    4: t['th-created'],
+                    5: t['th-actions']
                 }
             };
+        }
 
-            const observer = new MutationObserver(function(mutations) {
-                for (const table in tableLabels) {
-                    const tbody = document.getElementById(table);
-                    if (tbody) {
-                        const rows = tbody.querySelectorAll('tr');
-                        rows.forEach(row => {
-                            const tds = row.querySelectorAll('td');
-                            tds.forEach((td, index) => {
-                                if (!td.hasAttribute('data-label') && tableLabels[table][index]) {
-                                    td.setAttribute('data-label', tableLabels[table][index]);
-                                }
-                            });
-                        });
-                    }
-                }
+        function refreshTableLabels() {
+            const tableLabels = getTableLabels();
+            for (const table in tableLabels) {
+                const tbody = document.getElementById(table);
+                if (!tbody) continue;
+                const rows = tbody.querySelectorAll('tr');
+                rows.forEach((row) => {
+                    const tds = row.querySelectorAll('td');
+                    tds.forEach((td, index) => {
+                        if (tableLabels[table][index]) {
+                            td.setAttribute('data-label', tableLabels[table][index]);
+                        }
+                    });
+                });
+            }
+        }
+
+        window.refreshTableLabels = refreshTableLabels;
+
+        // Add data-label attributes to table cells for mobile card view
+        function setupTableLabels() {
+            const observer = new MutationObserver(function() {
+                refreshTableLabels();
             });
-
-            // Observe the whole document for changes
             observer.observe(document.body, {
                 childList: true,
                 subtree: true,
                 characterData: true
             });
+            refreshTableLabels();
         }
-
-        let currentLang = 'en';
-        const supportedLangs = ['en', 'zh-CN', 'zh-TW', 'ja', 'ko'];
-        const languageNames = {
-            en: 'English',
-            'zh-CN': '简体中文',
-            'zh-TW': '繁體中文',
-            ja: '日本語',
-            ko: '한국어'
-        };
-        const loginCopy = {
-            en: {
-                title: 'Sign in to continue',
-                hint: 'Use the admin password configured in Cloudflare Workers to unlock the dashboard.',
-                label: 'Admin Password',
-                placeholder: 'Enter admin password',
-                button: 'Sign In',
-                error: 'Incorrect password. Please try again.'
-            },
-            'zh-CN': {
-                title: '登录以继续',
-                hint: '请输入在 Cloudflare Workers 中配置的管理密码以进入控制台。',
-                label: '管理员密码',
-                placeholder: '请输入管理员密码',
-                button: '登录',
-                error: '密码错误，请重试。'
-            },
-            'zh-TW': {
-                title: '登入以繼續',
-                hint: '請輸入在 Cloudflare Workers 中設定的管理密碼以進入控制台。',
-                label: '管理員密碼',
-                placeholder: '請輸入管理員密碼',
-                button: '登入',
-                error: '密碼錯誤，請再試一次。'
-            },
-            ja: {
-                title: '続行するにはログインしてください',
-                hint: 'Cloudflare Workers で設定した管理パスワードを入力してダッシュボードを開きます。',
-                label: '管理者パスワード',
-                placeholder: '管理者パスワードを入力',
-                button: 'ログイン',
-                error: 'パスワードが正しくありません。もう一度お試しください。'
-            },
-            ko: {
-                title: '계속하려면 로그인하세요',
-                hint: 'Cloudflare Workers에 설정한 관리자 비밀번호를 입력해 대시보드를 잠금 해제하세요.',
-                label: '관리자 비밀번호',
-                placeholder: '관리자 비밀번호 입력',
-                button: '로그인',
-                error: '비밀번호가 올바르지 않습니다. 다시 시도하세요.'
-            }
-        };
         </script>
     <script src="/assets/admin/shared.js" defer></script>
     <script src="/assets/admin/auth.js" defer></script>

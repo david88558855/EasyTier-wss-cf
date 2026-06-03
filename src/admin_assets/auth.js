@@ -15,6 +15,7 @@ export const authScript = String.raw`
       });
       if (verifySeq !== authCheckSeq || tokenSnapshot !== token) return;
       if (res.ok) {
+        await api.ensureServerMeta();
         api.showDashboard();
       } else {
         api.showLogin();
@@ -40,6 +41,7 @@ export const authScript = String.raw`
       if (res.ok && data.token) {
         token = data.token;
         localStorage.setItem('easytier_admin_token', token);
+        await api.ensureServerMeta();
         api.showDashboard();
         api.loadStats && api.loadStats();
         api.startPolling && api.startPolling();

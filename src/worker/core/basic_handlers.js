@@ -2,6 +2,7 @@ import { MAGIC, VERSION, MY_PEER_ID, PacketType } from './constants.js';
 import { createHeader } from './packet.js';
 import { getPeerManager } from './peer_manager.js';
 import { wrapPacket, randomU64String } from './crypto.js';
+import { persistWebSocketAttachment } from './ws_attachment.js';
 
 const WS_OPEN = (typeof WebSocket !== 'undefined' && WebSocket.OPEN) ? WebSocket.OPEN : 1;
 
@@ -75,6 +76,7 @@ export function handleHandshake(ws, header, payload, types) {
     if (ws.weAreInitiator === undefined) {
       ws.weAreInitiator = false;
     }
+    persistWebSocketAttachment(ws);
 
     setTimeout(() => {
       try {

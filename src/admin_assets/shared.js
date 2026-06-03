@@ -70,6 +70,65 @@ export const sharedScript = String.raw`
     return parseFloat((bytes / Math.pow(k, index)).toFixed(2)) + ' ' + sizes[index];
   };
 
+  api.getWsPath = function getWsPath() {
+    return window.serverWsPath || 'ws';
+  };
+
+  api.ensureServerMeta = async function ensureServerMeta() {
+    if (window.serverWsPath && typeof window.serverRequireToken === 'boolean') return;
+    if (!token) return;
+    try {
+      const res = await fetch('/api/config', {
+        headers: { 'Authorization': 'Bearer ' + token, 'X-Admin-Token': token }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        window.serverWsPath = data.wsPath || 'ws';
+        window.serverRequireToken = !!data.requireToken;
+      }
+    } catch (error) {
+      console.warn('Failed to load server meta', error);
+    }
+  };
+
+  api.buildClientWsUrl = function buildClientWsUrl(roomId, clientToken) {
+    const room = String(roomId || '').trim() || 'default';
+    const token = String(clientToken || '').trim();
+    const wsPath = api.getWsPath().replace(/^\\/+/, '').replace(/\\/+$/, '') || 'ws';
+    const url = new URL(location.origin);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    url.pathname = '/' + wsPath;
+    url.search = '';
+    url.hash = '';
+    url.port = '0';
+    url.searchParams.set('room', room);
+    if (token) url.searchParams.set('token', token);
+    return url.toString();
+  };
+
+  api.copyText = async function copyText(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (error) {
+      console.error('copy failed', error);
+      return false;
+    }
+  };
+
+  api.t = function t(key, fallback) {
+    const pack = translations[currentLang] || translations.en || {};
+    return pack[key] || (translations.en && translations.en[key]) || fallback || '';
+  };
+
+  api.copyWithToast = async function copyWithToast(text, successKey) {
+    const ok = await api.copyText(text);
+    if (ok && successKey && translations[currentLang] && translations[currentLang][successKey]) {
+      alert(translations[currentLang][successKey]);
+    }
+    return ok;
+  };
+
   api.updateUI = function updateUI() {
     const t = translations[currentLang] || translations.en;
     document.title = t['menu-overview'] + ' - EasyTier Admin';
@@ -98,6 +157,9 @@ export const sharedScript = String.raw`
     api.updateCountdownText();
     api.updateLanguagePickerLabels();
     api.updateLoginUI();
+    if (typeof window.refreshTableLabels === 'function') {
+      window.refreshTableLabels();
+    }
   };
 
   api.showLogin = function showLogin() {

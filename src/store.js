@@ -1,3 +1,5 @@
+import { buildEasyTierWsUrl } from "./ws_url.js";
+
 const textEncoder = new TextEncoder();
 
 export const STATE_KEY = "state";
@@ -61,13 +63,12 @@ export function normalizeRouteInput(input, existing = null) {
   };
 }
 
-export function buildPublicWsUrl(origin, routeId, clientToken) {
-  const url = new URL(origin);
-  url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
-  url.pathname = `/ws/${encodeURIComponent(routeId)}/${encodeURIComponent(clientToken)}`;
-  url.search = "";
-  url.hash = "";
-  return url.toString();
+export function buildPublicWsUrl(origin, routeId, clientToken, wsPath = "ws") {
+  return buildEasyTierWsUrl(origin, {
+    room: routeId,
+    token: clientToken,
+    wsPath,
+  });
 }
 
 function shellQuote(value) {
