@@ -1163,14 +1163,6 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                         <i data-lucide="folder-tree"></i>
                         <span data-i18n="menu-rooms">Rooms & Peers</span>
                     </li>
-                    <li class="menu-item" onclick="switchTab('tokens', this); closeMobileSidebar();">
-                        <i data-lucide="key-round"></i>
-                        <span data-i18n="menu-tokens">Client Tokens</span>
-                    </li>
-                    <li class="menu-item" onclick="switchTab('configs', this); closeMobileSidebar();">
-                        <i data-lucide="server"></i>
-                        <span data-i18n="menu-configs">EasyTier Configurations</span>
-                    </li>
                     <li class="menu-item" onclick="switchTab('settings', this); closeMobileSidebar();">
                         <i data-lucide="settings"></i>
                         <span data-i18n="menu-settings">Settings</span>
@@ -1310,52 +1302,23 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                 </div>
             </div>
 
-            <!-- TAB: TOKENS -->
-            <div id="tabTokens" class="tab-content">
-                <div class="table-card">
+                <!-- EasyTier Config Files Section -->
+                <div class="table-card" style="margin-top: 2rem;">
                     <div class="table-header-row">
-                        <span class="table-title" data-i18n="tokens-title">Client Connection Tokens</span>
-                        <button class="btn-create" onclick="openCreateTokenModal()">
-                            <i data-lucide="plus"></i>
-                            <span data-i18n="btn-gen-token">Generate Token</span>
-                        </button>
-                    </div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th data-i18n="th-token">Token</th>
-                                    <th data-i18n="th-desc">Description</th>
-                                    <th data-i18n="th-created">Created At</th>
-                                    <th data-i18n="th-actions">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tokensTableBody">
-                                <!-- Dynamic -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB: CONFIGS -->
-            <div id="tabConfigs" class="tab-content">
-                <div class="table-card">
-                    <div class="table-header-row">
-                        <span class="table-title" data-i18n="easytier-configs-title">EasyTier Configurations</span>
+                        <span class="table-title" data-i18n="easytier-configs-title">EasyTier Config Files</span>
                         <button class="btn-create" onclick="openEasyTierConfigModal()">
                             <i data-lucide="plus"></i>
-                            <span data-i18n="btn-add-easytier-config">Add EasyTier Config</span>
+                            <span data-i18n="btn-add-easytier-config">Add Config File</span>
                         </button>
                     </div>
                     <div class="table-container">
                         <table>
                             <thead>
                                 <tr>
-                                    <th data-i18n="th-config-name">Name</th>
-                                    <th data-i18n="th-wss-url">WSS Address</th>
-                                    <th data-i18n="th-room-id">Room ID</th>
-                                    <th data-i18n="th-config-token">Client Token</th>
+                                    <th data-i18n="th-config-name">Config Name</th>
+                                    <th data-i18n="th-network-name">Network Name</th>
+                                    <th data-i18n="th-virtual-ip">Virtual IP (IPv4)</th>
+                                    <th data-i18n="th-peers">Peers</th>
                                     <th data-i18n="th-created">Created At</th>
                                     <th data-i18n="th-actions">Actions</th>
                                 </tr>
@@ -1371,19 +1334,6 @@ export const serveAdminDashboard = `<!DOCTYPE html>
             <!-- TAB: SETTINGS -->
             <div id="tabSettings" class="tab-content">
                 <div class="settings-card">
-                    <div class="settings-title" data-i18n="settings-general">General Configuration</div>
-                    <div class="settings-group">
-                        <div class="switch-control">
-                            <div class="switch-label">
-                                <h4 data-i18n="set-req-token-title">Require Client Connection Token</h4>
-                                <p data-i18n="set-req-token-desc">Reject EasyTier clients connection unless they present a valid token via query parameters.</p>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="requireTokenToggle" onchange="handleToggleRequireToken(this.checked)">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                    </div>
 
                     <div class="settings-title" data-i18n="settings-admin-pass">Admin Password</div>
                     <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;" data-i18n="set-pass-env-note">The admin password is configured via the <code style="background:rgba(255,255,255,0.08);padding:0.1em 0.4em;border-radius:4px;">ADMIN_PASSWORD</code> environment variable in the Cloudflare Workers dashboard. Changes take effect after redeployment.</p>
@@ -1392,65 +1342,122 @@ export const serveAdminDashboard = `<!DOCTYPE html>
         </main>
     </div>
 
-    <!-- MODAL: CREATE TOKEN -->
-    <div id="createTokenModal" class="modal">
-        <div class="modal-card">
-            <h3 class="modal-title" data-i18n="btn-gen-token">Generate Token</h3>
-            <form onsubmit="handleCreateToken(event)">
-                <div class="form-group">
-                    <label for="tokenDescInput" data-i18n="th-desc">Description</label>
-                    <input type="text" id="tokenDescInput" class="form-control" placeholder="e.g. Home Node, Office VPS" required>
-                </div>
-                <div class="form-group">
-                    <label for="tokenRoomInput" data-i18n="easytier-config-room">Room ID</label>
-                    <input type="text" id="tokenRoomInput" class="form-control" data-i18n-placeholder="easytier-config-room-ph" placeholder="default" value="default">
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn-cancel" onclick="closeCreateTokenModal()" data-i18n="btn-cancel">Cancel</button>
-                    <button type="submit" class="btn-submit" style="width: auto; padding: 0.6rem 1.5rem;" data-i18n="btn-generate-token">Generate</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- MODAL: CREATE EASYTIER CONFIG -->
     <div id="easyTierConfigModal" class="modal">
-        <div class="modal-card">
+        <div class="modal-card" style="max-width: 720px; width: 90%;">
             <h3 class="modal-title" data-i18n="easytier-config-modal-title">Add EasyTier Config</h3>
             <form onsubmit="handleCreateEasyTierConfig(event)">
-                <div class="form-group">
-                    <label for="easyTierConfigNameInput" data-i18n="easytier-config-name">Config Name</label>
-                    <input type="text" id="easyTierConfigNameInput" class="form-control" data-i18n-placeholder="easytier-config-name-ph" placeholder="Home Node" required>
+                <input type="hidden" id="easyTierConfigId">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                    <!-- Column 1: Network settings -->
+                    <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                        <h4 style="color: var(--primary); border-bottom: 1px solid var(--glass-border); padding-bottom: 0.3rem;" data-i18n="section-net-identity">Network Identity</h4>
+                        <div class="form-group">
+                            <label for="easyTierConfigInstanceName" data-i18n="label-instance-name">Instance Name</label>
+                            <input type="text" id="easyTierConfigInstanceName" class="form-control" placeholder="e.g. Home-Node">
+                        </div>
+                        <div class="form-group">
+                            <label for="easyTierConfigNetworkName" data-i18n="easytier-config-network-name">Network Name</label>
+                            <input type="text" id="easyTierConfigNetworkName" class="form-control" placeholder="mynet" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="easyTierConfigNetworkSecret" data-i18n="easytier-config-network-secret">Network Secret</label>
+                            <input type="password" id="easyTierConfigNetworkSecret" class="form-control" placeholder="Enter network password" required>
+                        </div>
+                        
+                        <h4 style="color: var(--primary); border-bottom: 1px solid var(--glass-border); padding-bottom: 0.3rem; margin-top: 0.5rem;" data-i18n="section-ip-settings">IP & DHCP</h4>
+                        <div class="form-group">
+                            <label for="easyTierConfigIpv4" data-i18n="label-ipv4">Virtual IPv4</label>
+                            <input type="text" id="easyTierConfigIpv4" class="form-control" placeholder="e.g. 10.14.14.1/24">
+                        </div>
+                        <div class="switch-control" style="margin-top: 0.5rem;">
+                            <span style="font-size: 0.9rem; font-weight: 500;" data-i18n="label-dhcp">Enable DHCP</span>
+                            <label class="switch">
+                                <input type="checkbox" id="easyTierConfigDhcp">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Connection & Flags -->
+                    <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                        <h4 style="color: var(--primary); border-bottom: 1px solid var(--glass-border); padding-bottom: 0.3rem;" data-i18n="section-connections">Connections</h4>
+                        <div class="form-group">
+                            <label for="easyTierConfigPeers" data-i18n="label-peers">P2P Peers (one per line)</label>
+                            <textarea id="easyTierConfigPeers" class="form-control" rows="3" placeholder="e.g. tcp://1.2.3.4:11010&#10;wss://relay.com:0/ws?room=mynet"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="easyTierConfigListeners" data-i18n="label-listeners">Local Listeners (one per line)</label>
+                            <textarea id="easyTierConfigListeners" class="form-control" rows="2" placeholder="tcp://0.0.0.0:11010"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="easyTierConfigRpcPortal" data-i18n="label-rpc-portal">RPC Portal Address</label>
+                            <input type="text" id="easyTierConfigRpcPortal" class="form-control" value="127.0.0.1:15888">
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="easyTierConfigWssInput" data-i18n="easytier-config-wss">WSS Address</label>
-                    <input type="url" id="easyTierConfigWssInput" class="form-control" data-i18n-placeholder="easytier-config-wss-ph" placeholder="wss://example.com/ws" required>
+
+                <!-- Advanced flags section -->
+                <h4 style="color: var(--primary); border-bottom: 1px solid var(--glass-border); padding-bottom: 0.3rem; margin-bottom: 0.8rem;" data-i18n="section-flags">Options & Flags</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                        <div class="form-group">
+                            <label for="easyTierConfigProtocol" data-i18n="label-protocol">Default Protocol</label>
+                            <select id="easyTierConfigProtocol" class="form-control" style="background: var(--input-bg); color: var(--text-color); border: 1px solid var(--glass-border); border-radius: 8px; padding: 0.6rem 0.8rem;">
+                                <option value="tcp">TCP</option>
+                                <option value="udp">UDP</option>
+                                <option value="ws">WebSocket (WS)</option>
+                                <option value="wss">WebSocket Secure (WSS)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="easyTierConfigDevName" data-i18n="label-dev-name">TUN Device Name</label>
+                            <input type="text" id="easyTierConfigDevName" class="form-control" value="tun0">
+                        </div>
+                        <div class="form-group">
+                            <label for="easyTierConfigMtu" data-i18n="label-mtu">MTU</label>
+                            <input type="number" id="easyTierConfigMtu" class="form-control" value="1380">
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                        <div class="form-group">
+                            <label for="easyTierConfigProxyNetworks" data-i18n="label-proxy-networks">Proxy Subnets (one per line)</label>
+                            <textarea id="easyTierConfigProxyNetworks" class="form-control" rows="2" placeholder="e.g. 192.168.1.0/24"></textarea>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.5rem;">
+                            <div class="switch-control">
+                                <span style="font-size: 0.9rem; font-weight: 500;" data-i18n="label-encryption">Enable Encryption</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="easyTierConfigEncryption" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="switch-control">
+                                <span style="font-size: 0.9rem; font-weight: 500;" data-i18n="label-ipv6">Enable IPv6</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="easyTierConfigIpv6" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="switch-control">
+                                <span style="font-size: 0.9rem; font-weight: 500;" data-i18n="label-latency-first">Latency First</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="easyTierConfigLatencyFirst">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="easyTierConfigRoomInput" data-i18n="easytier-config-room">Room ID</label>
-                    <input type="text" id="easyTierConfigRoomInput" class="form-control" data-i18n-placeholder="easytier-config-room-ph" placeholder="default">
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="easyTierConfigNotes" data-i18n="easytier-config-notes">Notes</label>
+                    <textarea id="easyTierConfigNotes" class="form-control" rows="2" placeholder="Optional notes..."></textarea>
                 </div>
-                <div class="form-group">
-                    <label for="easyTierConfigTokenInput" data-i18n="easytier-config-token">Client Token</label>
-                    <input type="text" id="easyTierConfigTokenInput" class="form-control" list="clientTokenList" data-i18n-placeholder="easytier-config-token-ph" placeholder="Optional token">
-                    <datalist id="clientTokenList"></datalist>
-                </div>
-                <div class="form-group">
-                    <label for="easyTierConfigNetworkNameInput" data-i18n="easytier-config-network-name">Network Name</label>
-                    <input type="text" id="easyTierConfigNetworkNameInput" class="form-control" data-i18n-placeholder="easytier-config-network-name-ph" placeholder="Optional, for CLI command">
-                </div>
-                <div class="form-group">
-                    <label for="easyTierConfigNetworkSecretInput" data-i18n="easytier-config-network-secret">Network Secret</label>
-                    <input type="password" id="easyTierConfigNetworkSecretInput" class="form-control" data-i18n-placeholder="easytier-config-network-secret-ph" placeholder="Optional, for CLI command">
-                </div>
-                <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 1rem;" data-i18n="easytier-config-wss-hint">WSS base URL will be combined with Room ID and Token into a full peer URL (?room=...&amp;token=...).</p>
-                <div class="form-group">
-                    <label for="easyTierConfigNotesInput" data-i18n="easytier-config-notes">Notes</label>
-                    <textarea id="easyTierConfigNotesInput" class="form-control" rows="3" data-i18n-placeholder="easytier-config-notes-ph" placeholder="Optional notes"></textarea>
-                </div>
+
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel" onclick="closeEasyTierConfigModal()" data-i18n="btn-cancel">Cancel</button>
-                    <button type="submit" class="btn-submit" style="width: auto; padding: 0.6rem 1.5rem;" data-i18n="btn-confirm">Confirm</button>
+                    <button type="submit" class="btn-submit" style="width: auto; padding: 0.6rem 1.5rem;" data-i18n="btn-confirm">Save Configuration</button>
                 </div>
             </form>
         </div>

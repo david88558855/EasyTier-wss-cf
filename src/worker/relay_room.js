@@ -543,49 +543,33 @@ export class RelayRoom {
       }
       if (body.easyTierConfig && typeof body.easyTierConfig === 'object') {
         const input = body.easyTierConfig;
-        const roomId = String(input.roomId || '').trim() || 'default';
-        const clientToken = String(input.clientToken || '').trim();
-        const wsPath = this.env.WS_PATH || 'ws';
-        let wssUrl = String(input.wssUrl || '').trim();
-        if (!wssUrl) {
-          return new Response(JSON.stringify({ error: 'wssUrl is required' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' }
-          });
-        }
-        try {
-          if (wssUrl.includes('?')) {
-            wssUrl = mergeEasyTierWsUrl(wssUrl, { room: roomId, token: clientToken });
-          } else {
-            wssUrl = buildEasyTierWsUrl(wssUrl, { room: roomId, token: clientToken, wsPath });
-          }
-        } catch (e) {
-          return new Response(JSON.stringify({ error: e.message || 'invalid wssUrl' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' }
-          });
-        }
-        const networkName = String(input.networkName || '').trim();
-        const networkSecret = String(input.networkSecret || '').trim();
         const nextConfig = {
-          id: crypto.randomUUID(),
-          name: String(input.name || '').trim(),
-          wssUrl,
-          roomId,
-          clientToken,
-          networkName,
+          id: input.id || crypto.randomUUID(),
+          instance_name: String(input.instance_name || '').trim(),
+          network_name: String(input.network_name || '').trim(),
+          network_secret: String(input.network_secret || '').trim(),
+          ipv4: String(input.ipv4 || '').trim(),
+          dhcp: !!input.dhcp,
+          listeners: String(input.listeners || '').trim(),
+          rpc_portal: String(input.rpc_portal || '').trim(),
+          peers: String(input.peers || '').trim(),
+          proxy_networks: String(input.proxy_networks || '').trim(),
+          default_protocol: String(input.default_protocol || 'tcp').trim(),
+          dev_name: String(input.dev_name || 'tun0').trim(),
+          mtu: Number(input.mtu) || 1380,
+          enable_encryption: input.enable_encryption !== false,
+          enable_ipv6: input.enable_ipv6 !== false,
+          latency_first: !!input.latency_first,
           notes: String(input.notes || '').trim(),
-          createdAt: new Date().toISOString(),
+          createdAt: input.createdAt || new Date().toISOString(),
         };
-        if (!nextConfig.name) {
-          return new Response(JSON.stringify({ error: 'name is required' }), {
+        if (!nextConfig.network_name) {
+          return new Response(JSON.stringify({ error: 'network_name is required' }), {
             status: 400,
             headers: { 'Content-Type': 'application/json' }
           });
         }
-        if (networkName || networkSecret) {
-          nextConfig.easyTierCommand = buildEasyTierCoreCommand(wssUrl, networkName, networkSecret);
-        }
+        config.easyTierConfigs = (config.easyTierConfigs || []).filter((entry) => entry.id !== nextConfig.id);
         config.easyTierConfigs.unshift(nextConfig);
       }
       await saveConfig(config);

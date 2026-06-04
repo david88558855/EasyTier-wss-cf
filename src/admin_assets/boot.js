@@ -63,21 +63,15 @@ export const bootScript = String.raw`
     window.viewRoomPeers = api.viewRoomPeers;
     window.closeRoomPeers = api.closeRoomPeers;
     window.kickPeer = api.kickPeer;
-    window.loadTokens = api.loadTokens;
-    window.openCreateTokenModal = api.openCreateTokenModal;
-    window.closeCreateTokenModal = api.closeCreateTokenModal;
-    window.handleCreateToken = api.handleCreateToken;
-    window.deleteToken = api.deleteToken;
     window.loadSettings = api.loadSettings;
     window.loadEasyTierConfigs = api.loadEasyTierConfigs;
     window.openEasyTierConfigModal = api.openEasyTierConfigModal;
     window.closeEasyTierConfigModal = api.closeEasyTierConfigModal;
     window.handleCreateEasyTierConfig = api.handleCreateEasyTierConfig;
-    window.handleToggleRequireToken = api.handleToggleRequireToken;
-    window.copyTokenWsUrl = api.copyTokenWsUrl;
     window.copyRoomWsUrl = api.copyRoomWsUrl;
-    window.copyEasyTierConfigUrl = api.copyEasyTierConfigUrl;
     window.copyEasyTierCommand = api.copyEasyTierCommand;
+    window.downloadEasyTierToml = api.downloadEasyTierToml;
+    window.editEasyTierConfig = api.editEasyTierConfig;
     window.deleteEasyTierConfig = api.deleteEasyTierConfig;
   }
 

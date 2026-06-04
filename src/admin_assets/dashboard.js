@@ -15,11 +15,6 @@ export const dashboardScript = String.raw`
     } else if (tabId === 'rooms') {
       document.getElementById('tabRooms').classList.add('active');
       api.loadRooms();
-    } else if (tabId === 'tokens') {
-      document.getElementById('tabTokens').classList.add('active');
-      api.loadTokens();
-    } else if (tabId === 'configs') {
-      document.getElementById('tabConfigs').classList.add('active');
       api.loadEasyTierConfigs();
     } else if (tabId === 'settings') {
       document.getElementById('tabSettings').classList.add('active');
@@ -155,7 +150,7 @@ export const dashboardScript = String.raw`
       peerNode.setAttribute('fill', 'url(#peerGradient)');
       peerNode.setAttribute('style', 'cursor: pointer; filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.5));');
       const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-      title.textContent = 'Peer ID: ' + peer.peerId + '\\nHostname: ' + (peer.hostname || 'N/A') + '\\nIP: ' + (peer.ipv4Addr || 'N/A');
+      title.textContent = 'Peer ID: ' + peer.peerId + '\nHostname: ' + (peer.hostname || 'N/A') + '\nIP: ' + (peer.ipv4Addr || 'N/A');
       peerNode.appendChild(title);
       svg.appendChild(peerNode);
     });
