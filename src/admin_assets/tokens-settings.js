@@ -6,7 +6,7 @@ export const tokensSettingsScript = String.raw`
   api.loadTokens = async function loadTokens() {
     try {
       const res = await fetch('/api/tokens', {
-        headers: { 'Authorization': 'Bearer ' + token, 'X-Admin-Token': token }
+        headers: { 'Authorization': 'Bearer ' + window.token, 'X-Admin-Token': window.token }
       });
       if (!res.ok) throw new Error('API failed');
       const data = await res.json();
@@ -15,7 +15,7 @@ export const tokensSettingsScript = String.raw`
       body.innerHTML = '';
       const tokens = data.tokens || [];
       if (!tokens.length) {
-        body.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">' + (translations[currentLang]['tokens-empty'] || '') + '</td></tr>';
+        body.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">' + (translations[window.currentLang]['tokens-empty'] || '') + '</td></tr>';
         return;
       }
       tokens.forEach((tok) => {
@@ -24,8 +24,8 @@ export const tokensSettingsScript = String.raw`
           '<td>' + (tok.description || '') + '</td>' +
           '<td style="color: var(--text-secondary);">' + new Date(tok.createdAt).toLocaleString() + '</td>' +
           '<td style="white-space: nowrap;">' +
-          '<button type="button" class="btn-action" onclick="EasyTierAdmin.copyTokenWsUrl(' + JSON.stringify(tok.token) + ')"><i data-lucide="copy" style="width: 14px; height: 14px;"></i> ' + translations[currentLang]['action-copy-wss'] + '</button> ' +
-          '<button type="button" class="btn-action btn-danger-action" onclick="EasyTierAdmin.deleteToken(' + JSON.stringify(tok.token) + ')"><i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> ' + translations[currentLang]['action-delete'] + '</button></td>';
+          '<button type="button" class="btn-action" onclick="EasyTierAdmin.copyTokenWsUrl(' + JSON.stringify(tok.token) + ')"><i data-lucide="copy" style="width: 14px; height: 14px;"></i> ' + translations[window.currentLang]['action-copy-wss'] + '</button> ' +
+          '<button type="button" class="btn-action btn-danger-action" onclick="EasyTierAdmin.deleteToken(' + JSON.stringify(tok.token) + ')"><i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> ' + translations[window.currentLang]['action-delete'] + '</button></td>';
         body.appendChild(tr);
       });
       api.safeCreateIcons();
@@ -56,7 +56,7 @@ export const tokensSettingsScript = String.raw`
     if (!datalist) return;
     try {
       const res = await fetch('/api/tokens', {
-        headers: { 'Authorization': 'Bearer ' + token, 'X-Admin-Token': token }
+        headers: { 'Authorization': 'Bearer ' + window.token, 'X-Admin-Token': window.token }
       });
       if (!res.ok) return;
       const data = await res.json();
@@ -81,15 +81,15 @@ export const tokensSettingsScript = String.raw`
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token,
-          'X-Admin-Token': token
+          'Authorization': 'Bearer ' + window.token,
+          'X-Admin-Token': window.token
         },
         body: JSON.stringify({ description, room: roomId })
       });
       if (res.ok) {
         const created = await res.json();
         const wssUrl = created.wssUrl || api.buildClientWsUrl(created.roomId || roomId, created.token);
-        const message = (translations[currentLang]['msg-gen-success'] || '') + '\\n\\n' + wssUrl;
+        const message = (translations[window.currentLang]['msg-gen-success'] || '') + '\n\n' + wssUrl;
         alert(message);
         await api.copyText(wssUrl);
         api.closeCreateTokenModal();
@@ -102,14 +102,14 @@ export const tokensSettingsScript = String.raw`
   };
 
   api.deleteToken = async function deleteToken(tokenVal) {
-    if (!confirm(translations[currentLang]['msg-delete-token-confirm'] || 'Delete this token?')) return;
+    if (!confirm(translations[window.currentLang]['msg-delete-token-confirm'] || 'Delete this token?')) return;
     try {
       const res = await fetch('/api/tokens?token=' + encodeURIComponent(tokenVal), {
         method: 'DELETE',
-        headers: { 'Authorization': 'Bearer ' + token, 'X-Admin-Token': token }
+        headers: { 'Authorization': 'Bearer ' + window.token, 'X-Admin-Token': window.token }
       });
       if (res.ok) {
-        alert(translations[currentLang]['msg-deleted-success']);
+        alert(translations[window.currentLang]['msg-deleted-success']);
         api.loadTokens();
       }
     } catch (error) {
@@ -120,7 +120,7 @@ export const tokensSettingsScript = String.raw`
   api.loadSettings = async function loadSettings() {
     try {
       const res = await fetch('/api/config', {
-        headers: { 'Authorization': 'Bearer ' + token, 'X-Admin-Token': token }
+        headers: { 'Authorization': 'Bearer ' + window.token, 'X-Admin-Token': window.token }
       });
       if (res.ok) {
         const data = await res.json();
@@ -135,7 +135,7 @@ export const tokensSettingsScript = String.raw`
   };
 
   api.copyTokenWsUrl = async function copyTokenWsUrl(tokenVal) {
-    const room = prompt(translations[currentLang]['prompt-room-id'] || 'Room ID', 'default');
+    const room = prompt(translations[window.currentLang]['prompt-room-id'] || 'Room ID', 'default');
     if (room === null) return;
     const wssUrl = api.buildClientWsUrl(room, tokenVal);
     await api.copyWithToast(wssUrl, 'msg-copied');
@@ -144,7 +144,7 @@ export const tokensSettingsScript = String.raw`
   api.loadEasyTierConfigs = async function loadEasyTierConfigs() {
     try {
       const res = await fetch('/api/config', {
-        headers: { 'Authorization': 'Bearer ' + token, 'X-Admin-Token': token }
+        headers: { 'Authorization': 'Bearer ' + window.token, 'X-Admin-Token': window.token }
       });
       if (res.ok) {
         const data = await res.json();
@@ -163,7 +163,7 @@ export const tokensSettingsScript = String.raw`
     if (!body) return;
     body.innerHTML = '';
     if (!window.easyTierConfigs.length) {
-      body.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">' + translations[currentLang]['easytier-config-empty'] + '</td></tr>';
+      body.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">' + translations[window.currentLang]['easytier-config-empty'] + '</td></tr>';
       return;
     }
     window.easyTierConfigs.forEach((config) => {
@@ -174,9 +174,9 @@ export const tokensSettingsScript = String.raw`
         '<td style="font-family: monospace; font-size: 0.85rem; word-break: break-all;">' + (config.clientToken || '—') + '</td>' +
         '<td style="color: var(--text-secondary);">' + new Date(config.createdAt || Date.now()).toLocaleString() + '</td>' +
         '<td style="white-space: nowrap;">' +
-        '<button type="button" class="btn-action" onclick="EasyTierAdmin.copyEasyTierConfigUrl(' + JSON.stringify(config.id) + ')"><i data-lucide="copy" style="width: 14px; height: 14px;"></i> ' + translations[currentLang]['action-copy-wss'] + '</button> ' +
-        (config.easyTierCommand ? '<button type="button" class="btn-action" onclick="EasyTierAdmin.copyEasyTierCommand(' + JSON.stringify(config.id) + ')"><i data-lucide="terminal" style="width: 14px; height: 14px;"></i> ' + translations[currentLang]['action-copy-cmd'] + '</button> ' : '') +
-        '<button type="button" class="btn-action btn-danger-action" onclick="EasyTierAdmin.deleteEasyTierConfig(' + JSON.stringify(config.id) + ')"><i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> ' + translations[currentLang]['action-delete'] + '</button></td>';
+        '<button type="button" class="btn-action" onclick="EasyTierAdmin.copyEasyTierConfigUrl(' + JSON.stringify(config.id) + ')"><i data-lucide="copy" style="width: 14px; height: 14px;"></i> ' + translations[window.currentLang]['action-copy-wss'] + '</button> ' +
+        (config.easyTierCommand ? '<button type="button" class="btn-action" onclick="EasyTierAdmin.copyEasyTierCommand(' + JSON.stringify(config.id) + ')"><i data-lucide="terminal" style="width: 14px; height: 14px;"></i> ' + translations[window.currentLang]['action-copy-cmd'] + '</button> ' : '') +
+        '<button type="button" class="btn-action btn-danger-action" onclick="EasyTierAdmin.deleteEasyTierConfig(' + JSON.stringify(config.id) + ')"><i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> ' + translations[window.currentLang]['action-delete'] + '</button></td>';
       body.appendChild(tr);
     });
     api.safeCreateIcons();
@@ -196,19 +196,19 @@ export const tokensSettingsScript = String.raw`
   };
 
   api.deleteEasyTierConfig = async function deleteEasyTierConfig(configId) {
-    if (!confirm(translations[currentLang]['msg-config-delete-confirm'] || 'Delete this config?')) return;
+    if (!confirm(translations[window.currentLang]['msg-config-delete-confirm'] || 'Delete this config?')) return;
     try {
       const res = await fetch('/api/config', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token,
-          'X-Admin-Token': token
+          'Authorization': 'Bearer ' + window.token,
+          'X-Admin-Token': window.token
         },
         body: JSON.stringify({ deleteEasyTierConfigId: configId })
       });
       if (res.ok) {
-        alert(translations[currentLang]['msg-config-deleted'] || 'Deleted');
+        alert(translations[window.currentLang]['msg-config-deleted'] || 'Deleted');
         api.loadEasyTierConfigs();
       }
     } catch (error) {
@@ -258,8 +258,8 @@ export const tokensSettingsScript = String.raw`
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token,
-          'X-Admin-Token': token
+          'Authorization': 'Bearer ' + window.token,
+          'X-Admin-Token': window.token
         },
         body: JSON.stringify({ easyTierConfig })
       });
@@ -271,11 +271,11 @@ export const tokensSettingsScript = String.raw`
         } else {
           api.loadEasyTierConfigs();
         }
-        alert(translations[currentLang]['msg-config-added']);
+        alert(translations[window.currentLang]['msg-config-added']);
         api.closeEasyTierConfigModal();
       } else {
         const errorData = await res.json().catch(() => ({}));
-        alert(errorData.error || translations[currentLang]['msg-config-failed'] || 'Failed to add EasyTier config');
+        alert(errorData.error || translations[window.currentLang]['msg-config-failed'] || 'Failed to add EasyTier config');
       }
     } catch (error) {
       console.error(error);
@@ -288,8 +288,8 @@ export const tokensSettingsScript = String.raw`
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token,
-          'X-Admin-Token': token
+          'Authorization': 'Bearer ' + window.token,
+          'X-Admin-Token': window.token
         },
         body: JSON.stringify({ requireToken: checked })
       });
@@ -301,5 +301,16 @@ export const tokensSettingsScript = String.raw`
     }
   };
 
+  api.copyEasyTierConfigUrl = async function copyEasyTierConfigUrl(configId) {
+    const config = (window.easyTierConfigs || []).find((entry) => entry.id === configId);
+    if (!config || !config.wssUrl) return;
+    await api.copyWithToast(config.wssUrl, 'msg-copied');
+  };
+
+  api.copyEasyTierCommand = async function copyEasyTierCommand(configId) {
+    const config = (window.easyTierConfigs || []).find((entry) => entry.id === configId);
+    if (!config || !config.easyTierCommand) return;
+    await api.copyWithToast(config.easyTierCommand, 'msg-copied');
+  };
 })();
 `;

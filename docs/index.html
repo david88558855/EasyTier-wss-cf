@@ -476,11 +476,7 @@
 
         <footer>
             <p>&copy; 2026 EasyTier WSS Relay. Released under the MIT License.</p>
-            <p data-i18n="footer-note">Decentralized mesh VPN relay built with Cloudflare Workers.</p>
-        </footer>
-    </div>
-
-    <!-- Translations & Language Handler -->
+            <p data-i18n="footer-note">Decentralized mesh VPN relay built with Cloudflare Workers.<    <!-- Translations & Language Handler -->
     <script>
         const translations = {
             en: {
@@ -501,7 +497,7 @@
                 "step1-title": "Fork & Deploy",
                 "step1-desc": "Fork this repository, connect it in your Cloudflare Workers dashboard, and deploy. The setup is 100% automated.",
                 "step2-title": "Set Admin Password & Access Dashboard",
-                "step2-desc": "Go to Cloudflare Dashboard → Workers → Settings → Variables and Secrets, add ADMIN_PASSWORD as a Secret with your chosen password. Then visit your deployment URL and sign in.",
+                "step2-desc": "Go to Cloudflare Dashboard → Workers → Settings → Variables and Secrets, add ADMIN_PASSWORD as a Secret with your chosen password. Then visit your deployment URL followed by /panel and sign in.",
                 "step3-title": "Connect Client",
                 "step3-desc": "Specify the WSS address as a peer in your EasyTier configuration. Use the default room or create a custom one.",
                 "copy": "Copy",
@@ -526,7 +522,7 @@
                 "step1-title": "Fork 仓库并部署",
                 "step1-desc": "Fork 本仓库，在 Cloudflare Workers 面板中关联该项目一键完成部署。安装运行全自动化。",
                 "step2-title": "设置管理员密码并登录控制台",
-                "step2-desc": "前往 Cloudflare 控制台 → Workers → Settings → Variables and Secrets，将 ADMIN_PASSWORD 添加为 Secret 并设置您的密码。然后访问部署地址登录后台。",
+                "step2-desc": "前往 Cloudflare 控制台 → Workers → Settings → Variables and Secrets，将 ADMIN_PASSWORD 添加为 Secret 并设置您的密码。然后访问部署地址的 /panel 路径登录后台。",
                 "step3-title": "连接客户端",
                 "step3-desc": "在您的 EasyTier 客户端配置中添加中继节点 WSS 地址。支持默认房间或自定义房间参数。",
                 "copy": "复制",
@@ -546,19 +542,19 @@
                 "feat3-title": "視覺化管理後台",
                 "feat3-desc": "內置精美高級的控制面板。即時監控連線狀態，方便地增刪存取權杖，並繪製真實網路拓撲圖。",
                 "feat4-title": "五國語言支援",
-                "feat4-desc": "為國際化使用而設計。在頂部導覽一鍵切換英文、簡體中文、繁體中文、日文和韓文。",
+                "feat4-desc": "為國際化使用而設計。在頂部導覽一鍵切換英文、簡體中文、繁體中文、日文 and 韓文。",
                 "guide-title": "使用指南",
                 "step1-title": "Fork 倉庫並部署",
                 "step1-desc": "Fork 本倉庫，在 Cloudflare Workers 面板中關聯該項目一鍵完成部署。安裝運行全自動化。",
                 "step2-title": "設置管理員密碼並登入控制台",
-                "step2-desc": "前往 Cloudflare 控制台 → Workers → Settings → Variables and Secrets，將 ADMIN_PASSWORD 新增為 Secret 並設定您的密碼。然後存取部署網址登入後台。",
+                "step2-desc": "前往 Cloudflare 控制台 → Workers → Settings → Variables and Secrets，將 ADMIN_PASSWORD 新增為 Secret 並設定您的密碼。然後存取部署網址的 /panel 路徑登入後台。",
                 "step3-title": "連線用戶端",
                 "step3-desc": "在您的 EasyTier 用戶端配置中添加中繼節點 WSS 地址。支援預設房間或自訂房間參數。",
                 "copy": "複製",
                 "copied": "已複製!",
                 "footer-note": "使用 Cloudflare Workers 節點網路構建的去中心化 P2P 組網中繼。"
             },
-            ja: {
+            "ja": {
                 "badge": "Cloudflare エッジネットワーク",
                 "hero-title": "EasyTier WSS リレー",
                 "hero-subtitle": "Cloudflare Workers & Durable Objects のグローバルエッジネットワーク上に構築された、EasyTier P2P VPN 用のサーバーレスで安全かつ高性能な WebSocket (WSS) リレーサーバーです。",
@@ -567,7 +563,7 @@
                 "feat1-title": "サーバーレス & 無料",
                 "feat1-desc": "Cloudflare の無料枠インフラで完全に動作します。VPS や独自ドメイン、物理サーバーは不要です。",
                 "feat2-title": "ゼロ構成",
-                "feat2-desc": "外部データベースは一切不要。アクティブな部屋の登録、設定、クライントトークンはすべて Durable Objects 内に安全に保存されます。",
+                "feat2-desc": "外部データベースは一切不要。アクティブな部屋の登録、設定、クライアントトークンはすべて Durable Objects 内に安全に保存されます。",
                 "feat3-title": "管理者ダッシュボード",
                 "feat3-desc": "プレミアムな内蔵管理コンソール。リアルタイムでノード接続の監視、トークンの管理、およびトポロジの描画を行います。",
                 "feat4-title": "5ヶ国語対応",
@@ -576,14 +572,14 @@
                 "step1-title": "Fork & デプロイ",
                 "step1-desc": "このリポジトリをフォークし、Cloudflare Workers ダッシュボードで連携してデプロイします。セットアップは 100% 自動化されています。",
                 "step2-title": "管理者パスワードを設定してダッシュボードにアクセス",
-                "step2-desc": "Cloudflare ダッシュボード → Workers → Settings → Variables and Secrets を開き、ADMIN_PASSWORD を Secret として追加してパスワードを設定します。その後、デプロイURLにアクセスしてログインします。",
+                "step2-desc": "Cloudflare ダッシュボード → Workers → Settings → Variables and Secrets を開き、ADMIN_PASSWORD を Secret として追加してパスワードを設定します。その後、デプロイURLの末尾に /panel を付けてアクセスし、ログインします。",
                 "step3-title": "クライアントの接続",
                 "step3-desc": "EasyTier 設定でピアの接続文字列として WSS アドレスを指定します。デフォルトの部屋またはカスタムの部屋名を使用できます。",
                 "copy": "コピー",
                 "copied": "コピーしました!",
                 "footer-note": "Cloudflare Workers を用いて構築された分散型 P2P VPN 用リレーサーバー。"
             },
-            ko: {
+            "ko": {
                 "badge": "Cloudflare 에지 네트워크",
                 "hero-title": "EasyTier WSS 릴레이",
                 "hero-subtitle": "Cloudflare Workers & Durable Objects 글로벌 에지 네트워크 위에 구축된 EasyTier P2P VPN용 서버리스, 보안 및 고성능 WebSocket (WSS) 릴레이 서버입니다.",
@@ -601,7 +597,7 @@
                 "step1-title": "Fork 및 배포",
                 "step1-desc": "이 저장소를 포크하고 Cloudflare Workers 대시보드에 연결하여 배포합니다. 설정은 100% 자동화되어 있습니다.",
                 "step2-title": "관리자 비밀번호 설정 및 대시보드 접속",
-                "step2-desc": "Cloudflare 대시보드 → Workers → Settings → Variables and Secrets에서 ADMIN_PASSWORD를 Secret으로 추가하고 비밀번호를 설정합니다. 그런 다음 배포 URL에 접속하여 로그인합니다.",
+                "step2-desc": "Cloudflare 대시보드 → Workers → Settings → Variables and Secrets에서 ADMIN_PASSWORD를 Secret으로 추가하고 비밀번호를 설정합니다. 그런 다음 배포 URL의 /panel 경로에 접속하여 로그인합니다.",
                 "step3-title": "클라이언트 연결",
                 "step3-desc": "EasyTier 설정에서 피어 연결 문자열로 WSS 주소를 지정합니다. 기본 방 또는 사용자 정의 방 이름을 사용할 수 있습니다.",
                 "copy": "복사",

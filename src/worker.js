@@ -37,13 +37,17 @@ export default {
     }
 
     // 2. Admin dashboard frontend static asset
-    if (pathname === '/' || pathname === '/admin' || pathname === '/admin/') {
+    if (pathname === '/panel' || pathname === '/panel/') {
       return new Response(serveAdminDashboard, {
         headers: {
           'Content-Type': 'text/html; charset=utf-8',
           'Cache-Control': 'no-cache, no-store, must-revalidate',
         },
       });
+    }
+
+    if (pathname === '/admin' || pathname === '/admin/') {
+      return Response.redirect(url.origin + '/panel', 301);
     }
 
     if (pathname.startsWith('/assets/admin/')) {
@@ -94,7 +98,7 @@ export default {
 
     // 5. WebSocket routing to EasyTier peer rooms
     const wsPath = '/' + (env.WS_PATH || 'ws');
-    if (pathname === wsPath || pathname === wsPath + '/') {
+    if (pathname === '/' || pathname === wsPath || pathname === wsPath + '/') {
       if (request.headers.get('Upgrade') !== 'websocket') {
         return new Response('Expected WebSocket upgrade', { status: 400 });
       }

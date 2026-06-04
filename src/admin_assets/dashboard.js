@@ -43,7 +43,7 @@ export const dashboardScript = String.raw`
   api.loadStats = async function loadStats() {
     try {
       const res = await fetch('/api/rooms', {
-        headers: { 'Authorization': 'Bearer ' + token, 'X-Admin-Token': token }
+        headers: { 'Authorization': 'Bearer ' + window.token, 'X-Admin-Token': window.token }
       });
       if (!res.ok) throw new Error('API error');
       const data = await res.json();
@@ -54,7 +54,7 @@ export const dashboardScript = String.raw`
 
       const roomDetails = await Promise.all(window.globalStats.rooms.map(async (room) => {
         const detailRes = await fetch('/api/rooms/' + encodeURIComponent(room.roomId) + '/stats', {
-          headers: { 'Authorization': 'Bearer ' + token, 'X-Admin-Token': token }
+          headers: { 'Authorization': 'Bearer ' + window.token, 'X-Admin-Token': window.token }
         });
         if (detailRes.ok) {
           const detail = await detailRes.json();
@@ -75,17 +75,17 @@ export const dashboardScript = String.raw`
       const statActiveRooms = document.getElementById('statActiveRooms');
       const statConnectedPeers = document.getElementById('statConnectedPeers');
       const statTotalTraffic = document.getElementById('statTotalTraffic');
-      if (statOnline) statOnline.innerText = translations[currentLang]['stat-online'];
+      if (statOnline) statOnline.innerText = translations[window.currentLang]['stat-online'];
       if (statActiveRooms) statActiveRooms.innerText = window.globalStats.rooms.length;
       if (statConnectedPeers) statConnectedPeers.innerText = window.globalStats.totalPeers;
       if (statTotalTraffic) statTotalTraffic.innerText = api.formatBytes(window.globalStats.totalRx) + ' / ' + api.formatBytes(window.globalStats.totalTx);
 
       const refreshText = document.getElementById('refreshText');
       if (refreshText) {
-        refreshText.innerText = currentLang === 'zh-CN' ? '自动刷新中...' :
-          currentLang === 'zh-TW' ? '自動重新整理中...' :
-          currentLang === 'ja' ? '自動更新中...' :
-          currentLang === 'ko' ? '자동 새로고침 중...' : 'Auto-refreshing...';
+        refreshText.innerText = window.currentLang === 'zh-CN' ? '自动刷新中...' :
+          window.currentLang === 'zh-TW' ? '自動重新整理中...' :
+          window.currentLang === 'ja' ? '自動更新中...' :
+          window.currentLang === 'ko' ? '자동 새로고침 중...' : 'Auto-refreshing...';
       }
 
       api.renderTopology(roomDetails.reduce((all, room) => all.concat(room.peers || []), []));
@@ -170,7 +170,7 @@ export const dashboardScript = String.raw`
     if (!body) return;
     body.innerHTML = '';
     if (window.globalStats.rooms.length === 0) {
-      body.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">' + (translations[currentLang]['rooms-empty'] || 'No active rooms. Connect a client to start.') + '</td></tr>';
+      body.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">' + (translations[window.currentLang]['rooms-empty'] || 'No active rooms. Connect a client to start.') + '</td></tr>';
       return;
     }
     window.globalStats.rooms.forEach((room) => {
@@ -178,8 +178,8 @@ export const dashboardScript = String.raw`
       tr.innerHTML = '<td style="font-weight: 600; color: #ffffff;">' + room.roomId + '</td>' +
         '<td><span class="badge-status badge-success">' + room.peerCount + '</span></td>' +
         '<td style="white-space: nowrap;">' +
-        '<button type="button" class="btn-action" onclick="EasyTierAdmin.copyRoomWsUrl(' + JSON.stringify(room.roomId) + ')"><i data-lucide="copy" style="width: 14px; height: 14px;"></i> ' + translations[currentLang]['action-copy-wss'] + '</button> ' +
-        '<button type="button" class="btn-action" onclick="EasyTierAdmin.viewRoomPeers(' + JSON.stringify(room.roomId) + ')"><i data-lucide="eye" style="width: 14px; height: 14px;"></i> ' + translations[currentLang]['action-view'] + '</button></td>';
+        '<button type="button" class="btn-action" onclick="EasyTierAdmin.copyRoomWsUrl(' + JSON.stringify(room.roomId) + ')"><i data-lucide="copy" style="width: 14px; height: 14px;"></i> ' + translations[window.currentLang]['action-copy-wss'] + '</button> ' +
+        '<button type="button" class="btn-action" onclick="EasyTierAdmin.viewRoomPeers(' + JSON.stringify(room.roomId) + ')"><i data-lucide="eye" style="width: 14px; height: 14px;"></i> ' + translations[window.currentLang]['action-view'] + '</button></td>';
       body.appendChild(tr);
     });
     api.safeCreateIcons();
@@ -192,9 +192,9 @@ export const dashboardScript = String.raw`
     const title = document.getElementById('roomPeersTitle');
     const body = document.getElementById('peersTableBody');
     if (card) card.style.display = 'block';
-    const titleTpl = translations[currentLang]['room-peers-title'] || 'Room Peers — {room}';
+    const titleTpl = translations[window.currentLang]['room-peers-title'] || 'Room Peers — {room}';
     if (title) title.innerText = titleTpl.replace('{room}', roomId);
-    if (body) body.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">' + (translations[currentLang]['loading'] || 'Loading...') + '</td></tr>';
+    if (body) body.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">' + (translations[window.currentLang]['loading'] || 'Loading...') + '</td></tr>';
     api.loadStats();
   };
 
@@ -209,7 +209,7 @@ export const dashboardScript = String.raw`
     if (!body) return;
     body.innerHTML = '';
     if (!peers || peers.length === 0) {
-      body.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">' + (translations[currentLang]['peers-empty'] || '') + '</td></tr>';
+      body.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">' + (translations[window.currentLang]['peers-empty'] || '') + '</td></tr>';
       return;
     }
     peers.forEach((peer) => {
@@ -225,7 +225,7 @@ export const dashboardScript = String.raw`
         '<td><span class="badge-status badge-warning" style="font-size: 0.75rem;">' + (peer.easytierVersion || 'N/A') + '</span></td>' +
         '<td style="font-size: 0.85rem;">' + api.formatBytes(peer.rxBytes) + ' / ' + api.formatBytes(peer.txBytes) + '</td>' +
         '<td>' + timeString + '</td>' +
-        '<td><button class="btn-action btn-danger-action" onclick="EasyTierAdmin.kickPeer(' + JSON.stringify(peer.peerId) + ')"><i data-lucide="user-minus" style="width: 14px; height: 14px;"></i> ' + translations[currentLang]['action-kick'] + '</button></td>';
+        '<td><button class="btn-action btn-danger-action" onclick="EasyTierAdmin.kickPeer(' + JSON.stringify(peer.peerId) + ')"><i data-lucide="user-minus" style="width: 14px; height: 14px;"></i> ' + translations[window.currentLang]['action-kick'] + '</button></td>';
       body.appendChild(tr);
     });
     api.safeCreateIcons();
@@ -237,7 +237,7 @@ export const dashboardScript = String.raw`
     const room = String(roomId || 'default').trim() || 'default';
     let clientToken = '';
     if (window.serverRequireToken) {
-      clientToken = prompt(translations[currentLang]['prompt-room-token'] || 'Client token (required)', '') || '';
+      clientToken = prompt(translations[window.currentLang]['prompt-room-token'] || 'Client token (required)', '') || '';
       if (!clientToken.trim()) return;
     }
     const wssUrl = api.buildClientWsUrl(room, clientToken.trim());
@@ -245,15 +245,15 @@ export const dashboardScript = String.raw`
   };
 
   api.kickPeer = async function kickPeer(peerId) {
-    const tpl = translations[currentLang]['msg-kick-confirm'] || 'Kick peer {id}?';
+    const tpl = translations[window.currentLang]['msg-kick-confirm'] || 'Kick peer {id}?';
     if (!confirm(tpl.replace('{id}', peerId))) return;
     try {
       const res = await fetch('/api/rooms/' + encodeURIComponent(window.activeSelectedRoomId) + '/kick?peerId=' + encodeURIComponent(peerId), {
         method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token, 'X-Admin-Token': token }
+        headers: { 'Authorization': 'Bearer ' + window.token, 'X-Admin-Token': window.token }
       });
       if (res.ok) {
-        alert(translations[currentLang]['msg-kicked-success']);
+        alert(translations[window.currentLang]['msg-kicked-success']);
         api.loadStats();
       }
     } catch (error) {

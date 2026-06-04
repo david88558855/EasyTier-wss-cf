@@ -14,7 +14,7 @@ export const sharedScript = String.raw`
   };
 
   api.switchLanguage = function switchLanguage(lang) {
-    currentLang = lang;
+    window.currentLang = lang;
     localStorage.setItem('easytier_admin_lang', lang);
     const loginLang = document.getElementById('loginLang');
     const dashboardLang = document.getElementById('dashboardLang');
@@ -31,7 +31,7 @@ export const sharedScript = String.raw`
   };
 
   api.updateLoginUI = function updateLoginUI() {
-    const copy = loginCopy[currentLang] || loginCopy.en;
+    const copy = loginCopy[window.currentLang] || loginCopy.en;
     const loginTitle = document.getElementById('loginTitle');
     const loginHint = document.getElementById('loginHint');
     const passwordLabel = document.querySelector('label[for="passwordInput"]');
@@ -54,11 +54,11 @@ export const sharedScript = String.raw`
   api.updateCountdownText = function updateCountdownText() {
     const refreshText = document.getElementById('refreshText');
     if (!refreshText) return;
-    const text = currentLang === 'zh-CN' ? ('自动刷新 ' + countdown + ' 秒内') :
-      currentLang === 'zh-TW' ? ('自動重新整理 ' + countdown + ' 秒內') :
-      currentLang === 'ja' ? (countdown + '秒で自動更新') :
-      currentLang === 'ko' ? (countdown + '초 뒤 새로고침') :
-      ('Auto-refresh in ' + countdown + 's');
+    const text = window.currentLang === 'zh-CN' ? ('自动刷新 ' + window.countdown + ' 秒内') :
+      window.currentLang === 'zh-TW' ? ('自動重新整理 ' + window.countdown + ' 秒內') :
+      window.currentLang === 'ja' ? (window.countdown + '秒で自動更新') :
+      window.currentLang === 'ko' ? (window.countdown + '초 뒤 새로고침') :
+      ('Auto-refresh in ' + window.countdown + 's');
     refreshText.innerText = text;
   };
 
@@ -76,10 +76,10 @@ export const sharedScript = String.raw`
 
   api.ensureServerMeta = async function ensureServerMeta() {
     if (window.serverWsPath && typeof window.serverRequireToken === 'boolean') return;
-    if (!token) return;
+    if (!window.token) return;
     try {
       const res = await fetch('/api/config', {
-        headers: { 'Authorization': 'Bearer ' + token, 'X-Admin-Token': token }
+        headers: { 'Authorization': 'Bearer ' + window.token, 'X-Admin-Token': window.token }
       });
       if (res.ok) {
         const data = await res.json();
@@ -117,20 +117,20 @@ export const sharedScript = String.raw`
   };
 
   api.t = function t(key, fallback) {
-    const pack = translations[currentLang] || translations.en || {};
+    const pack = translations[window.currentLang] || translations.en || {};
     return pack[key] || (translations.en && translations.en[key]) || fallback || '';
   };
 
   api.copyWithToast = async function copyWithToast(text, successKey) {
     const ok = await api.copyText(text);
-    if (ok && successKey && translations[currentLang] && translations[currentLang][successKey]) {
-      alert(translations[currentLang][successKey]);
+    if (ok && successKey && translations[window.currentLang] && translations[window.currentLang][successKey]) {
+      alert(translations[window.currentLang][successKey]);
     }
     return ok;
   };
 
   api.updateUI = function updateUI() {
-    const t = translations[currentLang] || translations.en;
+    const t = translations[window.currentLang] || translations.en;
     document.title = t['menu-overview'] + ' - EasyTier Admin';
     document.querySelectorAll('[data-i18n]').forEach((el) => {
       const key = el.getAttribute('data-i18n');
