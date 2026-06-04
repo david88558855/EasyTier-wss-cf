@@ -1295,21 +1295,21 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                         <h4 style="color: var(--primary); border-bottom: 1px solid var(--glass-border); padding-bottom: 0.3rem;" data-i18n="section-net-identity">Network Identity</h4>
                         <div class="form-group">
                             <label for="easyTierConfigInstanceName" data-i18n="label-instance-name">Instance Name</label>
-                            <input type="text" id="easyTierConfigInstanceName" class="form-control" placeholder="e.g. Home-Node">
+                            <input type="text" id="easyTierConfigInstanceName" class="form-control" data-i18n-placeholder="placeholder-instance-name">
                         </div>
                         <div class="form-group">
                             <label for="easyTierConfigNetworkName" data-i18n="easytier-config-network-name">Network Name</label>
-                            <input type="text" id="easyTierConfigNetworkName" class="form-control" placeholder="mynet" required>
+                            <input type="text" id="easyTierConfigNetworkName" class="form-control" data-i18n-placeholder="placeholder-network-name" required>
                         </div>
                         <div class="form-group">
                             <label for="easyTierConfigNetworkSecret" data-i18n="easytier-config-network-secret">Network Secret</label>
-                            <input type="password" id="easyTierConfigNetworkSecret" class="form-control" placeholder="Enter network password" required>
+                            <input type="password" id="easyTierConfigNetworkSecret" class="form-control" data-i18n-placeholder="placeholder-network-secret" required>
                         </div>
                         
                         <h4 style="color: var(--primary); border-bottom: 1px solid var(--glass-border); padding-bottom: 0.3rem; margin-top: 0.5rem;" data-i18n="section-ip-settings">IP & DHCP</h4>
                         <div class="form-group">
                             <label for="easyTierConfigIpv4" data-i18n="label-ipv4">Virtual IPv4</label>
-                            <input type="text" id="easyTierConfigIpv4" class="form-control" placeholder="e.g. 10.14.14.1/24">
+                            <input type="text" id="easyTierConfigIpv4" class="form-control" data-i18n-placeholder="placeholder-ipv4">
                         </div>
                         <div class="switch-control" style="margin-top: 0.5rem;">
                             <span style="font-size: 0.9rem; font-weight: 500;" data-i18n="label-dhcp">Enable DHCP</span>
@@ -1325,11 +1325,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                         <h4 style="color: var(--primary); border-bottom: 1px solid var(--glass-border); padding-bottom: 0.3rem;" data-i18n="section-connections">Connections</h4>
                         <div class="form-group">
                             <label for="easyTierConfigPeers" data-i18n="label-peers">P2P Peers (one per line)</label>
-                            <textarea id="easyTierConfigPeers" class="form-control" rows="3" placeholder="e.g. tcp://1.2.3.4:11010&#10;wss://relay.com:0/ws?room=mynet"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="easyTierConfigListeners" data-i18n="label-listeners">Local Listeners (one per line)</label>
-                            <textarea id="easyTierConfigListeners" class="form-control" rows="2" placeholder="tcp://0.0.0.0:11010"></textarea>
+                            <textarea id="easyTierConfigPeers" class="form-control" rows="3" data-i18n-placeholder="placeholder-peers"></textarea>
                         </div>
                         <div class="form-group">
                             <label for="easyTierConfigRpcPortal" data-i18n="label-rpc-portal">RPC Portal Address</label>
@@ -1345,10 +1341,10 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                         <div class="form-group">
                             <label for="easyTierConfigProtocol" data-i18n="label-protocol">Default Protocol</label>
                             <select id="easyTierConfigProtocol" class="form-control" style="background: var(--input-bg); color: var(--text-color); border: 1px solid var(--glass-border); border-radius: 8px; padding: 0.6rem 0.8rem;">
-                                <option value="tcp">TCP</option>
-                                <option value="udp">UDP</option>
-                                <option value="ws">WebSocket (WS)</option>
-                                <option value="wss">WebSocket Secure (WSS)</option>
+                                <option value="tcp" data-i18n="option-tcp">TCP</option>
+                                <option value="udp" data-i18n="option-udp">UDP</option>
+                                <option value="ws" data-i18n="option-ws">WebSocket (WS)</option>
+                                <option value="wss" data-i18n="option-wss">WebSocket Secure (WSS)</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -1363,7 +1359,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
                     <div style="display: flex; flex-direction: column; gap: 0.8rem;">
                         <div class="form-group">
                             <label for="easyTierConfigProxyNetworks" data-i18n="label-proxy-networks">Proxy Subnets (one per line)</label>
-                            <textarea id="easyTierConfigProxyNetworks" class="form-control" rows="2" placeholder="e.g. 192.168.1.0/24"></textarea>
+                            <textarea id="easyTierConfigProxyNetworks" class="form-control" rows="2" data-i18n-placeholder="placeholder-proxy-networks"></textarea>
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.5rem;">
                             <div class="switch-control">
@@ -1393,7 +1389,7 @@ export const serveAdminDashboard = `<!DOCTYPE html>
 
                 <div class="form-group" style="margin-bottom: 1.5rem;">
                     <label for="easyTierConfigNotes" data-i18n="easytier-config-notes">Notes</label>
-                    <textarea id="easyTierConfigNotes" class="form-control" rows="2" placeholder="Optional notes..."></textarea>
+                    <textarea id="easyTierConfigNotes" class="form-control" rows="2" data-i18n-placeholder="placeholder-notes"></textarea>
                 </div>
 
                 <div class="modal-actions">

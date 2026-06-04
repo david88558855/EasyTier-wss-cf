@@ -58,12 +58,7 @@ export const tokensSettingsScript = String.raw`
     if (config.ipv4) toml += 'ipv4 = "' + config.ipv4 + '"\n';
     toml += 'dhcp = ' + (config.dhcp ? 'true' : 'false') + '\n';
     
-    const listeners = (config.listeners || '').split('\n').map(x => x.trim()).filter(Boolean);
-    if (listeners.length > 0) {
-      toml += 'listeners = [ ' + listeners.map(l => '"' + l + '"').join(', ') + ' ]\n';
-    } else {
-      toml += 'listeners = []\n';
-    }
+    toml += 'listeners = [ "wss://0.0.0.0:443" ]\n';
     
     if (config.rpc_portal) toml += 'rpc_portal = "' + config.rpc_portal + '"\n';
     toml += '\n';
@@ -119,7 +114,6 @@ export const tokensSettingsScript = String.raw`
     document.getElementById('easyTierConfigIpv4').value = config.ipv4 || '';
     document.getElementById('easyTierConfigDhcp').checked = !!config.dhcp;
     document.getElementById('easyTierConfigPeers').value = config.peers || '';
-    document.getElementById('easyTierConfigListeners').value = config.listeners || '';
     document.getElementById('easyTierConfigRpcPortal').value = config.rpc_portal || '127.0.0.1:15888';
     document.getElementById('easyTierConfigProtocol').value = config.default_protocol || 'tcp';
     document.getElementById('easyTierConfigDevName').value = config.dev_name || 'tun0';
@@ -171,7 +165,6 @@ export const tokensSettingsScript = String.raw`
     document.getElementById('easyTierConfigIpv4').value = '';
     document.getElementById('easyTierConfigDhcp').checked = false;
     document.getElementById('easyTierConfigPeers').value = '';
-    document.getElementById('easyTierConfigListeners').value = 'tcp://0.0.0.0:11010';
     document.getElementById('easyTierConfigRpcPortal').value = '127.0.0.1:15888';
     document.getElementById('easyTierConfigProtocol').value = 'tcp';
     document.getElementById('easyTierConfigDevName').value = 'tun0';
@@ -193,7 +186,6 @@ export const tokensSettingsScript = String.raw`
       ipv4: document.getElementById('easyTierConfigIpv4').value.trim(),
       dhcp: document.getElementById('easyTierConfigDhcp').checked,
       peers: document.getElementById('easyTierConfigPeers').value.trim(),
-      listeners: document.getElementById('easyTierConfigListeners').value.trim(),
       rpc_portal: document.getElementById('easyTierConfigRpcPortal').value.trim(),
       default_protocol: document.getElementById('easyTierConfigProtocol').value,
       dev_name: document.getElementById('easyTierConfigDevName').value.trim(),
