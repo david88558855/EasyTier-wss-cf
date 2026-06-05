@@ -70,7 +70,6 @@ export const tokensSettingsScript = String.raw`
     let peers = (config.peers || '').split('\n').map(x => x.trim()).filter(Boolean);
     // Auto-generate default peer URL pointing to this relay if none configured
     if (peers.length === 0) {
-      const wsPath = (window.serverWsPath || 'ws').replace(/^\/+/, '').replace(/\/+$/, '') || 'ws';
       const roomName = config.network_name || 'default';
       const relayUrl = 'wss://' + window.location.host + ':443';
 
@@ -163,7 +162,6 @@ export const tokensSettingsScript = String.raw`
     if (modal) modal.style.display = 'flex';
     // Pre-fill Peers field with this relay's WSS URL
     try {
-      const wsPath = (window.serverWsPath || 'ws').replace(/^\/+/, '').replace(/\/+$/, '') || 'ws';
       const relayUrl = 'wss://' + window.location.host + ':443';
       const peersField = document.getElementById('easyTierConfigPeers');
       if (peersField && !peersField.value.trim()) {

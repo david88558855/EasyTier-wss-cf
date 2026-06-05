@@ -1390,13 +1390,10 @@ ${buildAdminI18nScript()}
         document.addEventListener('DOMContentLoaded', function() {
             setupTableLabels();
             // Show relay WSS URL in test card
-            (function() {
-              var urlDisplay = document.getElementById('wssTestUrl');
-              if (urlDisplay) {
-                var wsPath = (window.serverWsPath || 'ws').replace(/^\/+/, '').replace(/\/+$/, '') || 'ws';
+            var urlDisplay = document.getElementById('wssTestUrl');
+            if (urlDisplay) {
                 urlDisplay.textContent = 'Relay: wss://' + window.location.host + ':443';
-              }
-            })();
+            }
         });
     
         // WSS Connection Test
@@ -1442,13 +1439,6 @@ ${buildAdminI18nScript()}
                 };
             } catch(e) {
                 status.textContent = EasyTierAdmin.t('wss-test-error', 'Error') + ': ' + e.message;
-                status.style.color = 'var(--danger)';
-                btn.disabled = false;
-                btn.style.opacity = '1';
-            }
-        };
-            } catch(e) {
-                status.textContent = 'Error: ' + e.message;
                 status.style.color = 'var(--danger)';
                 btn.disabled = false;
                 btn.style.opacity = '1';
