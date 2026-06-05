@@ -81,7 +81,7 @@ export default {
 "placeholder-network-name": "e.g. mynet",
 "placeholder-network-secret": "Enter network password",
 "placeholder-ipv4": "e.g. 10.14.14.1/24",
-"placeholder-peers": "WSS peer URL (one per line)",
+"placeholder-peers": "wss://your-domain:443 (one per line)",
 "placeholder-proxy-networks": "e.g. 192.168.1.0/24",
 "placeholder-notes": "Optional notes",
 "option-tcp": "TCP",

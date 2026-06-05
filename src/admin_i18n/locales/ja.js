@@ -113,7 +113,7 @@ export default {
 "placeholder-network-name": "例：mynet",
 "placeholder-network-secret": "ネットワークパスワードを入力",
 "placeholder-ipv4": "例：10.14.14.1/24",
-"placeholder-peers": "WSS ピア URL（一行に一つ）",
+"placeholder-peers": "wss://your-domain:443（一行に一つ）",
 "placeholder-proxy-networks": "例：192.168.1.0/24",
 "placeholder-notes": "オプションのメモ",
 "option-tcp": "TCP",

@@ -113,7 +113,7 @@ export default {
 "placeholder-network-name": "예: mynet",
 "placeholder-network-secret": "네트워크 비밀번호 입력",
 "placeholder-ipv4": "예: 10.14.14.1/24",
-"placeholder-peers": "WSS 피어 URL (한 줄에 하나)",
+"placeholder-peers": "wss://your-domain:443（한 줄에 하나）",
 "placeholder-proxy-networks": "예: 192.168.1.0/24",
 "placeholder-notes": "선택적 메모",
 "option-tcp": "TCP",

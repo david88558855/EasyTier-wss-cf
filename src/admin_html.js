@@ -1389,6 +1389,14 @@ ${buildAdminI18nScript()}
         // Initialize mobile features after all scripts are loaded
         document.addEventListener('DOMContentLoaded', function() {
             setupTableLabels();
+            // Show relay WSS URL in test card
+            (function() {
+              var urlDisplay = document.getElementById('wssTestUrl');
+              if (urlDisplay) {
+                var wsPath = (window.serverWsPath || 'ws').replace(/^\/+/, '').replace(/\/+$/, '') || 'ws';
+                urlDisplay.textContent = 'Relay: wss://' + window.location.host + ':443';
+              }
+            })();
         });
     
         // WSS Connection Test

@@ -81,7 +81,7 @@ export default {
 "placeholder-network-name": "例如：mynet",
 "placeholder-network-secret": "输入网络密码",
 "placeholder-ipv4": "例如：10.14.14.1/24",
-"placeholder-peers": "WSS 节点地址（每行一个）",
+"placeholder-peers": "wss://your-domain:443（每行一个）",
 "placeholder-proxy-networks": "例如：192.168.1.0/24",
 "placeholder-notes": "可选备注",
 "option-tcp": "TCP",

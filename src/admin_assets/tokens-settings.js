@@ -67,7 +67,15 @@ export const tokensSettingsScript = String.raw`
     toml += 'network_name = "' + (config.network_name || '') + '"\n';
     toml += 'network_secret = "' + (config.network_secret || '') + '"\n\n';
     
-    const peers = (config.peers || '').split('\n').map(x => x.trim()).filter(Boolean);
+    let peers = (config.peers || '').split('\n').map(x => x.trim()).filter(Boolean);
+    // Auto-generate default peer URL pointing to this relay if none configured
+    if (peers.length === 0) {
+      const wsPath = (window.serverWsPath || 'ws').replace(/^\/+/, '').replace(/\/+$/, '') || 'ws';
+      const roomName = config.network_name || 'default';
+      const relayUrl = 'wss://' + window.location.host + ':443';
+
+      peers = [relayUrl];
+    }
     peers.forEach(peer => {
       toml += '[[peer]]\nuri = "' + peer + '"\n\n';
     });
@@ -153,6 +161,17 @@ export const tokensSettingsScript = String.raw`
     api.closeEasyTierConfigModal();
     const modal = document.getElementById('easyTierConfigModal');
     if (modal) modal.style.display = 'flex';
+    // Pre-fill Peers field with this relay's WSS URL
+    try {
+      const wsPath = (window.serverWsPath || 'ws').replace(/^\/+/, '').replace(/\/+$/, '') || 'ws';
+      const relayUrl = 'wss://' + window.location.host + ':443';
+      const peersField = document.getElementById('easyTierConfigPeers');
+      if (peersField && !peersField.value.trim()) {
+        peersField.value = relayUrl;
+      }
+    } catch(e) {
+      console.warn('Failed to pre-fill WSS URL', e);
+    }
   };
 
   api.closeEasyTierConfigModal = function closeEasyTierConfigModal() {

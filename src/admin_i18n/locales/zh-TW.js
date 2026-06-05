@@ -113,7 +113,7 @@ export default {
 "placeholder-network-name": "例如：mynet",
 "placeholder-network-secret": "輸入網路密碼",
 "placeholder-ipv4": "例如：10.14.14.1/24",
-"placeholder-peers": "WSS 節點位址（每行一個）",
+"placeholder-peers": "wss://your-domain:443（每行一個）",
 "placeholder-proxy-networks": "例如：192.168.1.0/24",
 "placeholder-notes": "選填備註",
 "option-tcp": "TCP",
