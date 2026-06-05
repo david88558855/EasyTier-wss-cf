@@ -121,7 +121,7 @@ export default {
 "option-wss": "WebSocket Secure (WSS)",
   "wss-test-title": "WSS 연결 테스트",
   "wss-test-btn": "연결 테스트",
-  "wss-test-not-tested": ""연결 테스트"를 클릭하여 WSS 릴레이 확인",
+  "wss-test-not-tested": "\"연결 테스트\"를 클릭하여 WSS 릴레이 확인",
   "wss-test-testing": "테스트 중...",
   "wss-test-success": "연결 성공! 릴레이를 WSS로 사용 가능",
   "wss-test-failed": "연결 실패 - 릴레이에 도달할 수 없음",

@@ -89,7 +89,7 @@ export default {
 "option-wss": "WebSocket Secure (WSS)",
   "wss-test-title": "WSS Connection Test",
   "wss-test-btn": "Test Connection",
-  "wss-test-not-tested": "Click "Test Connection" to verify WSS relay",
+  "wss-test-not-tested": "Click \"Test Connection\" to verify WSS relay",
   "wss-test-testing": "Testing...",
   "wss-test-success": "Connected! Relay is reachable via WSS",
   "wss-test-failed": "Connection failed - relay unreachable",
