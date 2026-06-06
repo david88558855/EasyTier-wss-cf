@@ -58,7 +58,7 @@ export default {
       }
       return new Response(asset, {
         headers: {
-          'Content-Type': 'application/javascript; charset=utf-8',
+          'Content-Type': assetName.endsWith('.css') ? 'text/css; charset=utf-8' : 'application/javascript; charset=utf-8',
           'Cache-Control': 'no-cache, no-store, must-revalidate',
         },
       });
